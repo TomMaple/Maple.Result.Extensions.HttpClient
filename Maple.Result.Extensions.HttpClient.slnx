@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj" />
+  </Folder>
+</Solution>

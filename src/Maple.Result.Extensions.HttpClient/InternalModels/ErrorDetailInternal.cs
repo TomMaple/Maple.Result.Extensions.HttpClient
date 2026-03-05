@@ -10,7 +10,7 @@ internal record ErrorDetailInternal
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("detail")]
-    public string Detail { get; init; }
+    public string Detail { get; init; } = string.Empty;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("detailTemplated")]

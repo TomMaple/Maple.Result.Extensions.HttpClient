@@ -4,7 +4,9 @@ The extension methods that map HttpClient result to Maple.Result
 
 # Project status: EARLY STAGE
 
-Check also my library: [Maple.Result](https://github.com/TomMaple/Result)
+Check also my other libraries:
+[Maple.Result](https://github.com/TomMaple/Result)
+[Maple.Result.Extensions.AspNetCore](https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore)
 
 # Give it a star ⭐
 Do you like it? Show your support by giving this project a star!

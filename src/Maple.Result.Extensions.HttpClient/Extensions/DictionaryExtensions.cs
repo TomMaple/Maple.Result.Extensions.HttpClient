@@ -1,4 +1,8 @@
-﻿namespace Maple.Result.Extensions.HttpClient.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Maple.Result.Extensions.HttpClient.Extensions;
 
 internal static class DictionaryExtensions
 {

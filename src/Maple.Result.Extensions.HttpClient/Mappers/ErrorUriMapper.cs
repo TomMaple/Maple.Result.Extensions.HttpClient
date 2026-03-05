@@ -1,4 +1,6 @@
-﻿namespace Maple.Result.Extensions.HttpClient.Mappers;
+﻿using System;
+
+namespace Maple.Result.Extensions.HttpClient.Mappers;
 
 internal static class ErrorUriMapper
 {

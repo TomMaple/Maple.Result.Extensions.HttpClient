@@ -10,6 +10,8 @@
 
 #pragma warning disable HAA0601
 
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

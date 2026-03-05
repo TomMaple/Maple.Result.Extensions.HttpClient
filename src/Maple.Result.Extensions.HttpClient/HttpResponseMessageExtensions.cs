@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Maple.Result.Extensions.HttpClient.Converters;
 using Maple.Result.Extensions.HttpClient.Mappers;
 
 namespace Maple.Result.Extensions.HttpClient;

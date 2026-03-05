@@ -13,4 +13,7 @@
   <Folder Name="/src/">
     <Project Path="src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Maple.Result.Extensions.HttpClient.Tests.Unit/Maple.Result.Extensions.HttpClient.Tests.Unit.csproj" />
+  </Folder>
 </Solution>

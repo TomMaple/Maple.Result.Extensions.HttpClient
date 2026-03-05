@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Maple.Result.Extensions.HttpClient</AssemblyName>
+
+    <PackageId>Maple.Result.Extensions.HttpClient</PackageId>
+    <Title>The extension methods that map HttpClient’s HttpResponseMessage to Maple.Result.</Title>
+    <Description>A collection of extension methods to map HttpClient’s HttpResponseMessage to Maple.Result.</Description>
+    <Authors>Tom Maple</Authors>
+    <PublisherName>Tom Maple</PublisherName>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>Result;Error;RFC-9457;RFC-7807;HttpClient;HttpResponse;HttpResponseMessage;mapper</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <PackageProjectUrl>https://github.com/TomMaple/Maple.Result.Extensions.HttpClient</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TomMaple/Maple.Result.Extensions.HttpClient</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Maple.Result" Version="1.38.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.resources\icon.png" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/build-and-publish.yml" />
+  </Folder>
+  <Folder Name="/.resources/">
+    <File Path=".resources/icon.png" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Maple.Result.Extensions.HttpClient.Tests.Unit/Maple.Result.Extensions.HttpClient.Tests.Unit.csproj" />
+  </Folder>
+</Solution>

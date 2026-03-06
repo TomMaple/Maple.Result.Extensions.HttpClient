@@ -1,16 +1,23 @@
 # Maple.Result.Extensions.HttpClient
-The extension methods that map HttpClient result to Maple.Result
+The extension methods that map `HttpClient` result to `Maple.Result`.
 
 
 # Project status: EARLY STAGE
 
 Check also my other libraries:
-[Maple.Result](https://github.com/TomMaple/Result)
-[Maple.Result.Extensions.AspNetCore](https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore)
+* [Maple.Result](https://github.com/TomMaple/Result),
+* [Maple.Result.Extensions.AspNetCore](https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore),
+* *Maple.Result.Extensions.Functions.Worker* (coming soon).
 
 # Give it a star ⭐
 Do you like it? Show your support by giving this project a star!
 
+# Status
+➡️ Basic mapping from `HttpResponseMessage` to `Maple.Result` and `Maple.Result<T>`.<br/>
+🔲 Integration tests.<br/>
+🔲 Configuration passed as a parameter to the extension method.<br/>
+🔲 Support for global configuration.<br/>
+🔲 Documentation.<br/>
 
 ## See also
 * [Problem Details for HTTP APIs - RFC 7807 is dead, long live RFC 9457](https://blog.frankel.ch/problem-details-http-apis/)

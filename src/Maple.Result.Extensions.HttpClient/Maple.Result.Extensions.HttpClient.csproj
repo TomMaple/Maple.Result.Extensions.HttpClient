@@ -16,6 +16,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
     <PackageProjectUrl>https://github.com/TomMaple/Maple.Result.Extensions.HttpClient</PackageProjectUrl>
     <RepositoryUrl>https://github.com/TomMaple/Maple.Result.Extensions.HttpClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -26,8 +29,12 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Maple.Result" Version="1.38.9" />
+    <PackageReference Include="Maple.Result" Version="1.38.16" />
   </ItemGroup>
 
   <ItemGroup>

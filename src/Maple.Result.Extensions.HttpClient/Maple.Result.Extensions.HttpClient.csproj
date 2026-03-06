@@ -16,6 +16,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
     <PackageProjectUrl>https://github.com/TomMaple/Maple.Result.Extensions.HttpClient</PackageProjectUrl>
     <RepositoryUrl>https://github.com/TomMaple/Maple.Result.Extensions.HttpClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

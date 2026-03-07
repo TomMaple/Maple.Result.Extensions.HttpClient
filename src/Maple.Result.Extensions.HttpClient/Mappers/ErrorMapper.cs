@@ -9,8 +9,12 @@ namespace Maple.Result.Extensions.HttpClient.Mappers;
 
 internal static class ErrorMapper
 {
+    #region consts
+
     private const string DetailTemplatedPropertyName = "detailTemplated";
     private const string ErrorDetailsPropertyName = "errors";
+
+    #endregion
 
     internal static Error? TryMap(string? content, HttpStatusCode statusCode)
     {

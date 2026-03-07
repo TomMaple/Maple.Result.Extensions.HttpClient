@@ -4,7 +4,11 @@ namespace Maple.Result.Extensions.HttpClient.Mappers;
 
 internal static class ErrorUriMapper
 {
+    #region consts
+
     private const string NoneValue = "about:blank";
+
+    #endregion
 
     internal static ErrorUri? Map(string? source)
     {

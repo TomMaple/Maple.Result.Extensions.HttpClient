@@ -9,9 +9,13 @@ namespace Maple.Result.Extensions.HttpClient.Mappers;
 
 internal static class ErrorDetailsMapper
 {
+    #region consts
+
     private const string DetailPropertyName = "detail";
     private const string PropertyPointerPropertyName = "pointer";
     private const string DetailTemplatedPropertyName = "detailTemplated";
+
+    #endregion
 
     internal static IReadOnlyList<ErrorDetail>? TryMap(object? source)
     {

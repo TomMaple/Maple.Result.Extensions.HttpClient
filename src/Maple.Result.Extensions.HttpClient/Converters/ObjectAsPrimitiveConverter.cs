@@ -21,7 +21,7 @@ namespace Maple.Result.Extensions.HttpClient.Converters;
 ///     A JSON converter that can serialize and deserialize objects as their primitive types.
 /// </summary>
 /// <remarks>Based on the implementation from: https://stackoverflow.com/a/65974452</remarks>
-public class ObjectAsPrimitiveConverter : JsonConverter<object>
+internal class ObjectAsPrimitiveConverter : JsonConverter<object>
 {
     /// <summary>
     ///     Reads the JSON value and converts it to the primitive type, if possible.

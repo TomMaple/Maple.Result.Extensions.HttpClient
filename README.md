@@ -1,5 +1,5 @@
 # Maple.Result.Extensions.HttpClient
-The extension methods that map `HttpClient` result to `Maple.Result`.
+The extension methods that map [HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient) result to [Maple.Result](https://github.com/TomMaple/Result).
 
 
 # Project status: EARLY STAGE

@@ -25,7 +25,7 @@ internal static class ErrorUriMapper
         }
         catch
         {
-            // ignore
+            return null;
         }
 
         return null;

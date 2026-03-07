@@ -59,16 +59,11 @@ internal static class TemplatedMessageMapper
 
     private static IReadOnlyDictionary<string, object>? GetValidParamsOrNull(object? source)
     {
-        if (source is IDictionary<string, object?> dictionary)
-            return GetValidParamsOrNull(dictionary);
+        if (source is not IDictionary<string, object?> dictionary)
+            return null;
 
-        return null;
-    }
-
-    private static IReadOnlyDictionary<string, object>? GetValidParamsOrNull(IDictionary<string, object?>? source)
-    {
-        var validParams = source
-            ?.Where(pair => !string.IsNullOrWhiteSpace(pair.Key) && pair.Value is not null)
+        var validParams = dictionary
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Key) && pair.Value is not null)
             .ToDictionary(pair => pair.Key, pair => pair.Value!);
 
         if (validParams is { Count: > 0 })

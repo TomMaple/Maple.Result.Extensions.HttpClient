@@ -1,4 +1,14 @@
-﻿using System.Collections.Generic;
+﻿// SPDX-License-Identifier: MIT
+/*
+ * This code is a part of a Maple.Result.Extensions.HttpClient library project.
+ * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
+ * Copyright (c) Tom Maple
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Maple.Result.Extensions.HttpClient.Extensions;
@@ -59,16 +69,11 @@ internal static class TemplatedMessageMapper
 
     private static IReadOnlyDictionary<string, object>? GetValidParamsOrNull(object? source)
     {
-        if (source is IDictionary<string, object?> dictionary)
-            return GetValidParamsOrNull(dictionary);
+        if (source is not IDictionary<string, object?> dictionary)
+            return null;
 
-        return null;
-    }
-
-    private static IReadOnlyDictionary<string, object>? GetValidParamsOrNull(IDictionary<string, object?>? source)
-    {
-        var validParams = source
-            ?.Where(pair => !string.IsNullOrWhiteSpace(pair.Key) && pair.Value is not null)
+        var validParams = dictionary
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Key) && pair.Value is not null)
             .ToDictionary(pair => pair.Key, pair => pair.Value!);
 
         if (validParams is { Count: > 0 })

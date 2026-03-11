@@ -1,7 +1,7 @@
 ﻿// SPDX-License-Identifier: MIT
 /*
- * This code is a part of a Maple.Result library project.
- * https://github.com/TomMaple/Result/
+ * This code is a part of a Maple.Result.Extensions.HttpClient library project.
+ * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
  * Copyright (c) Tom Maple
  *
  * This source code is licensed under the MIT license found in the
@@ -21,7 +21,7 @@ namespace Maple.Result.Extensions.HttpClient.Converters;
 ///     A JSON converter that can serialize and deserialize objects as their primitive types.
 /// </summary>
 /// <remarks>Based on the implementation from: https://stackoverflow.com/a/65974452</remarks>
-public class ObjectAsPrimitiveConverter : JsonConverter<object>
+internal class ObjectAsPrimitiveConverter : JsonConverter<object>
 {
     /// <summary>
     ///     Reads the JSON value and converts it to the primitive type, if possible.

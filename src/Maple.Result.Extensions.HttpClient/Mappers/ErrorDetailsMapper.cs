@@ -1,4 +1,14 @@
-﻿using System.Collections.Generic;
+﻿// SPDX-License-Identifier: MIT
+/*
+ * This code is a part of a Maple.Result.Extensions.HttpClient library project.
+ * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
+ * Copyright (c) Tom Maple
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+using System.Collections.Generic;
 using System.Linq;
 using Maple.Result.Extensions.HttpClient.Extensions;
 using Maple.Result.Extensions.HttpClient.Helpers;
@@ -9,18 +19,22 @@ namespace Maple.Result.Extensions.HttpClient.Mappers;
 
 internal static class ErrorDetailsMapper
 {
+    #region consts
+
     private const string DetailPropertyName = "detail";
     private const string PropertyPointerPropertyName = "pointer";
     private const string DetailTemplatedPropertyName = "detailTemplated";
+
+    #endregion
 
     internal static IReadOnlyList<ErrorDetail>? TryMap(object? source)
     {
         var errorDetails = source switch
         {
-            object[] array => TryMapArray(array),
-            IDictionary<string, object?> dictionary => TryMapDictionary(dictionary),
-            JsonElement { ValueKind: JsonValueKind.Array } jsonArray => TryMapJsonArray(jsonArray),
-            JsonElement { ValueKind: JsonValueKind.Object } jsonObject => TryMapJsonObject(jsonObject),
+            object[] array => TryMapErrorsArray(array),
+            IDictionary<string, object?> dictionary => TryMapErrorsDictionary(dictionary),
+            JsonElement { ValueKind: JsonValueKind.Array } jsonArray => TryMapErrorsJsonArray(jsonArray),
+            JsonElement { ValueKind: JsonValueKind.Object } jsonObject => TryMapErrorsJsonObject(jsonObject),
             _ => null
         };
 
@@ -29,7 +43,7 @@ internal static class ErrorDetailsMapper
             : null;
     }
 
-    private static IReadOnlyList<ErrorDetail> TryMapArray(object[] sourceArray)
+    private static IReadOnlyList<ErrorDetail> TryMapErrorsArray(object[] sourceArray)
     {
         var errorDetails = new List<ErrorDetail>();
         foreach (var sourceItem in sourceArray)
@@ -45,7 +59,7 @@ internal static class ErrorDetailsMapper
         return errorDetails;
     }
 
-    private static IReadOnlyList<ErrorDetail> TryMapDictionary(IDictionary<string, object?> sourceDictionary)
+    private static IReadOnlyList<ErrorDetail> TryMapErrorsDictionary(IDictionary<string, object?> sourceDictionary)
     {
         var errorDetails = sourceDictionary
             .SelectMany(kv => TryMapItem(kv))
@@ -54,7 +68,7 @@ internal static class ErrorDetailsMapper
         return errorDetails;
     }
 
-    private static IReadOnlyList<ErrorDetail>? TryMapJsonArray(JsonElement jsonArray)
+    private static IReadOnlyList<ErrorDetail>? TryMapErrorsJsonArray(JsonElement jsonArray)
     {
         var mappedArray = JsonHelper.TryDeserialize<IReadOnlyList<ErrorDetailInternal>>(jsonArray);
 
@@ -66,7 +80,7 @@ internal static class ErrorDetailsMapper
         return errorDetails;
     }
 
-    private static IReadOnlyList<ErrorDetail>? TryMapJsonObject(JsonElement jsonObject)
+    private static IReadOnlyList<ErrorDetail>? TryMapErrorsJsonObject(JsonElement jsonObject)
     {
         var mappedDictionary = JsonHelper.TryDeserialize<Dictionary<string, object?>>(jsonObject);
 

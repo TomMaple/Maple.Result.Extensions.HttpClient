@@ -43,13 +43,13 @@ internal static class ErrorUriMapper
                ?? ErrorUri.None();
     }
 
-    internal static bool IsUriLocator(string source)
+    private static bool IsUriLocator(string source)
     {
         return source.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) 
             || source.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase);
     }
 
-    internal static bool IsUriTag(string source)
+    private static bool IsUriTag(string source)
     {
         return source.StartsWith("tag:", StringComparison.InvariantCultureIgnoreCase);
     }

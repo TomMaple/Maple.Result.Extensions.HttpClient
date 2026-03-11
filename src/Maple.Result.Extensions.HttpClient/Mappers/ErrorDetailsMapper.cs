@@ -21,10 +21,10 @@ internal static class ErrorDetailsMapper
     {
         var errorDetails = source switch
         {
-            object[] array => TryMapArray(array),
-            IDictionary<string, object?> dictionary => TryMapDictionary(dictionary),
-            JsonElement { ValueKind: JsonValueKind.Array } jsonArray => TryMapJsonArray(jsonArray),
-            JsonElement { ValueKind: JsonValueKind.Object } jsonObject => TryMapJsonObject(jsonObject),
+            object[] array => TryMapErrorsArray(array),
+            IDictionary<string, object?> dictionary => TryMapErrorsDictionary(dictionary),
+            JsonElement { ValueKind: JsonValueKind.Array } jsonArray => TryMapErrorsJsonArray(jsonArray),
+            JsonElement { ValueKind: JsonValueKind.Object } jsonObject => TryMapErrorsJsonObject(jsonObject),
             _ => null
         };
 
@@ -33,7 +33,7 @@ internal static class ErrorDetailsMapper
             : null;
     }
 
-    private static IReadOnlyList<ErrorDetail> TryMapArray(object[] sourceArray)
+    private static IReadOnlyList<ErrorDetail> TryMapErrorsArray(object[] sourceArray)
     {
         var errorDetails = new List<ErrorDetail>();
         foreach (var sourceItem in sourceArray)
@@ -49,7 +49,7 @@ internal static class ErrorDetailsMapper
         return errorDetails;
     }
 
-    private static IReadOnlyList<ErrorDetail> TryMapDictionary(IDictionary<string, object?> sourceDictionary)
+    private static IReadOnlyList<ErrorDetail> TryMapErrorsDictionary(IDictionary<string, object?> sourceDictionary)
     {
         var errorDetails = sourceDictionary
             .SelectMany(kv => TryMapItem(kv))
@@ -58,7 +58,7 @@ internal static class ErrorDetailsMapper
         return errorDetails;
     }
 
-    private static IReadOnlyList<ErrorDetail>? TryMapJsonArray(JsonElement jsonArray)
+    private static IReadOnlyList<ErrorDetail>? TryMapErrorsJsonArray(JsonElement jsonArray)
     {
         var mappedArray = JsonHelper.TryDeserialize<IReadOnlyList<ErrorDetailInternal>>(jsonArray);
 
@@ -70,7 +70,7 @@ internal static class ErrorDetailsMapper
         return errorDetails;
     }
 
-    private static IReadOnlyList<ErrorDetail>? TryMapJsonObject(JsonElement jsonObject)
+    private static IReadOnlyList<ErrorDetail>? TryMapErrorsJsonObject(JsonElement jsonObject)
     {
         var mappedDictionary = JsonHelper.TryDeserialize<Dictionary<string, object?>>(jsonObject);
 

@@ -2,7 +2,7 @@
 
 namespace Maple.Result.Extensions.HttpClient.Mappers;
 
-internal class ErrorCategoryMapper
+internal static class ErrorCategoryMapper
 {
     internal static ErrorCategory Map(HttpStatusCode statusCode)
     {

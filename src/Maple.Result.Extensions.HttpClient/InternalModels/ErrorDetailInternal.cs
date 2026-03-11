@@ -8,6 +8,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
 using System.Text.Json.Serialization;
 
 namespace Maple.Result.Extensions.HttpClient.InternalModels;

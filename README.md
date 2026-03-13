@@ -13,8 +13,8 @@ Check also my other libraries:
 Do you like it? Show your support by giving this project a star!
 
 # Status
-➡️ Basic mapping from `HttpResponseMessage` to `Maple.Result` and `Maple.Result<T>`.<br/>
-🔲 Integration tests.<br/>
+✅ Basic mapping from `HttpResponseMessage` to `Maple.Result` and `Maple.Result<T>`  
+➡️ Integration tests.\
 🔲 Configuration passed as a parameter to the extension method.<br/>
 🔲 Support for global configuration.<br/>
 🔲 Documentation.<br/>

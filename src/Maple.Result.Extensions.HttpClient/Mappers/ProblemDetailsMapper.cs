@@ -11,7 +11,6 @@
 using Maple.Result.Extensions.HttpClient.Extensions;
 using Maple.Result.Extensions.HttpClient.Helpers;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http.Headers;
 
 namespace Maple.Result.Extensions.HttpClient.Mappers;
 
@@ -24,7 +23,7 @@ internal static class ProblemDetailsMapper
 
     #endregion
 
-    internal static void Map(ProblemDetailsInternal? problemDetails, HttpResponseHeaders httpHeaders, ErrorBuilder errorBuilder)
+    internal static void Map(ProblemDetailsInternal? problemDetails, ErrorBuilder errorBuilder)
     {
         if (problemDetails is null)
             return;

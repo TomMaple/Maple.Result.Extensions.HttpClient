@@ -13,6 +13,7 @@ using Maple.Result.Extensions.HttpClient.Helpers;
 using Maple.Result.Extensions.HttpClient.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -37,7 +38,53 @@ public static class HttpResponseMessageExtensions
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
 
-        return MapToErrorAsync<ProblemDetailsInternal>(response, ProblemDetailsMapper.Map)
+        return MapToErrorAsync<ProblemDetailsInternal>(response, (error, _, _, _, errorBuilder) => ProblemDetailsMapper.Map(error, errorBuilder))
+            .ContinueWith(t => Result.FromError(t.Result));
+    }
+
+    public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
+        Action<TError?, ErrorBuilder> mapAction)
+    {
+        if (response.IsSuccessStatusCode)
+            return Task.FromResult(Result.Success());
+
+        return MapToErrorAsync(response,
+                (TError? error, HttpStatusCode _, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
+                    => mapAction(error, errorBuilder))
+            .ContinueWith(t => Result.FromError(t.Result));
+    }
+
+    public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, ErrorBuilder> mapAction)
+    {
+        if (response.IsSuccessStatusCode)
+            return Task.FromResult(Result.Success());
+
+        return MapToErrorAsync(response,
+                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
+                    => mapAction(error, statusCode, errorBuilder))
+            .ContinueWith(t => Result.FromError(t.Result));
+    }
+
+    public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction)
+    {
+        if (response.IsSuccessStatusCode)
+            return Task.FromResult(Result.Success());
+
+        return MapToErrorAsync(response,
+                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _, ErrorBuilder errorBuilder)
+                    => mapAction(error, statusCode, headers, errorBuilder))
+            .ContinueWith(t => Result.FromError(t.Result));
+    }
+
+    public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction)
+    {
+        if (response.IsSuccessStatusCode)
+            return Task.FromResult(Result.Success());
+
+        return MapToErrorAsync(response, mapAction)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
@@ -47,12 +94,51 @@ public static class HttpResponseMessageExtensions
         if (response.IsSuccessStatusCode)
             return MapSuccessResponseAsync<T>(response);
 
-        return MapToErrorAsync<ProblemDetailsInternal>(response, ProblemDetailsMapper.Map)
+        return MapToErrorAsync<ProblemDetailsInternal>(response, (error, _, _, _, errorBuilder) => ProblemDetailsMapper.Map(error, errorBuilder))
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
-        Action<TError?, HttpResponseHeaders, ErrorBuilder> mapAction)
+        Action<TError?, ErrorBuilder> mapAction)
+        where T : notnull
+    {
+        if (response.IsSuccessStatusCode)
+            return MapSuccessResponseAsync<T>(response);
+
+        return MapToErrorAsync(response,
+                (TError? error, HttpStatusCode _, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
+                    => mapAction(error, errorBuilder))
+            .ContinueWith(t => Result<T>.FromError(t.Result));
+    }
+
+    public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, ErrorBuilder> mapAction)
+        where T : notnull
+    {
+        if (response.IsSuccessStatusCode)
+            return MapSuccessResponseAsync<T>(response);
+
+        return MapToErrorAsync(response,
+                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
+                    => mapAction(error, statusCode, errorBuilder))
+            .ContinueWith(t => Result<T>.FromError(t.Result));
+    }
+
+    public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction)
+        where T : notnull
+    {
+        if (response.IsSuccessStatusCode)
+            return MapSuccessResponseAsync<T>(response);
+
+        return MapToErrorAsync(response,
+                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _, ErrorBuilder errorBuilder)
+                    => mapAction(error, statusCode, headers, errorBuilder))
+            .ContinueWith(t => Result<T>.FromError(t.Result));
+    }
+
+    public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
@@ -108,7 +194,7 @@ public static class HttpResponseMessageExtensions
             "maple.result.httpClient.successResponse.json.deserialization.error");
     }
 
-    private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response, Action<TError?, HttpResponseHeaders, ErrorBuilder> mapAction)
+    private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response, Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction)
     {
         try
         {
@@ -116,8 +202,6 @@ public static class HttpResponseMessageExtensions
 
             TError? mappedError = default;
             string? errorTitle = null;
-            //if (string.IsNullOrWhiteSpace(errorContent))
-            //    return ErrorMapper.Map(response.StatusCode, response.ReasonPhrase);
 
             if (!string.IsNullOrWhiteSpace(errorContent))
             {
@@ -131,7 +215,7 @@ public static class HttpResponseMessageExtensions
             errorTitle ??= ErrorTitleMapper.Map(response.ReasonPhrase, response.StatusCode);
 
             var errorBuilder = new ErrorBuilder(errorCategory, errorTitle);
-            mapAction(mappedError, response.Headers, errorBuilder);
+            mapAction(mappedError, response.StatusCode, response.Headers, errorContent, errorBuilder);
             var error = errorBuilder.Build();
 
             return error;

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using Maple.Result.Extensions.HttpClient.Helpers;
 
 namespace Maple.Result.Extensions.HttpClient.Tests.Unit;
@@ -855,16 +854,16 @@ public class HttpResponseMessageExtensionsUnitTests
                         "Code": {{(int)statusCode}},
                         "Message": {
                             "en": "The report has been rejected",
-                            "fr": "Le rapport a été rejeté."
+                            "fr": "Le rapport a été rejeté"
                         },
                         "Errors": {
                             "#/username": {
                                 "en": "At least 3 characters required",
-                                "fr": "Au moins 3 caractères requis."
+                                "fr": "Au moins 3 caractères requis"
                             },
                             "#/email": {
                                 "en": "Required.",
-                                "fr": "Requis"
+                                "fr": "Requis."
                             }
                         }
                     }
@@ -961,7 +960,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         private const string EnglishCode = "en";
 
-        internal static void Map(CustomErrorResponse? customError, HttpResponseHeaders headers, ErrorBuilder errorBuilder)
+        internal static void Map(CustomErrorResponse? customError, ErrorBuilder errorBuilder)
         {
             if (customError is null)
                 return;

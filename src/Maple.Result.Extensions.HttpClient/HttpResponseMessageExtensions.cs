@@ -202,8 +202,6 @@ public static class HttpResponseMessageExtensions
 
             TError? mappedError = default;
             string? errorTitle = null;
-            //if (string.IsNullOrWhiteSpace(errorContent))
-            //    return ErrorMapper.Map(response.StatusCode, response.ReasonPhrase);
 
             if (!string.IsNullOrWhiteSpace(errorContent))
             {

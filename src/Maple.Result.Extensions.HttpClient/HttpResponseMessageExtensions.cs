@@ -8,15 +8,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Maple.Result.Extensions.HttpClient.Helpers;
-using Maple.Result.Extensions.HttpClient.Mappers;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Maple.Result.Extensions.HttpClient.Helpers;
+using Maple.Result.Extensions.HttpClient.Mappers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Maple.Result.Extensions.HttpClient;
 

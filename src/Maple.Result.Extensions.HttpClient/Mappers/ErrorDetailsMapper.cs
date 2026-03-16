@@ -8,11 +8,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using Maple.Result.Extensions.HttpClient.Extensions;
 using Maple.Result.Extensions.HttpClient.Helpers;
 using Maple.Result.Extensions.HttpClient.InternalModels;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace Maple.Result.Extensions.HttpClient.Mappers;

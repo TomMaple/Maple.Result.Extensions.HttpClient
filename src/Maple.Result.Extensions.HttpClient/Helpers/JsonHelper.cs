@@ -8,10 +8,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+using Maple.Result.Extensions.HttpClient.Converters;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
-using Maple.Result.Extensions.HttpClient.Converters;
 
 namespace Maple.Result.Extensions.HttpClient.Helpers;
 

@@ -27,12 +27,6 @@ namespace Maple.Result.Extensions.HttpClient;
 /// </summary>
 public static class HttpResponseMessageExtensions
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new ObjectAsPrimitiveConverter(), new JsonStringEnumConverter() }
-    };
-
     public static Task<Result> ToResultAsync(this HttpResponseMessage response)
     {
         if (response.IsSuccessStatusCode)
@@ -167,8 +161,7 @@ public static class HttpResponseMessageExtensions
 
         try
         {
-            var value = JsonSerializer.Deserialize<T>(content, JsonSerializerOptions);
-            if (value is not null)
+            if (JsonHelper.TryDeserialize<T>(content, out var value, jsonSerializerOptions))
                 return value;
         }
         catch (Exception ex)
@@ -205,10 +198,15 @@ public static class HttpResponseMessageExtensions
 
             if (!string.IsNullOrWhiteSpace(errorContent))
             {
-                if (JsonHelper.IsValidJson(errorContent, out var jsonDoc))
-                    mappedError = JsonHelper.TryDeserialize<TError>(jsonDoc);
+                if (JsonHelper.IsValidJson(errorContent, out var jsonDoc)
+                    && JsonHelper.TryDeserialize<TError>(jsonDoc, out var mappedValue, jsonSerializerOptions))
+                {
+                    mappedError = mappedValue;
+                }
                 else
+                {
                     errorTitle = errorContent;
+                }
             }
 
             var errorCategory = ErrorCategoryMapper.Map(response.StatusCode);

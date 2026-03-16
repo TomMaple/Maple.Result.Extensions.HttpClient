@@ -70,7 +70,8 @@ internal static class ErrorDetailsMapper
 
     private static IReadOnlyList<ErrorDetail>? TryMapErrorsJsonArray(JsonElement jsonArray)
     {
-        var mappedArray = JsonHelper.TryDeserialize<IReadOnlyList<ErrorDetailInternal>>(jsonArray);
+        if (!JsonHelper.TryDeserialize<IReadOnlyList<ErrorDetailInternal>>(jsonArray, out var mappedArray))
+            return null;
 
         var errorDetails = mappedArray
             ?.Select(TryMap)
@@ -82,7 +83,8 @@ internal static class ErrorDetailsMapper
 
     private static IReadOnlyList<ErrorDetail>? TryMapErrorsJsonObject(JsonElement jsonObject)
     {
-        var mappedDictionary = JsonHelper.TryDeserialize<Dictionary<string, object?>>(jsonObject);
+        if (!JsonHelper.TryDeserialize<Dictionary<string, object?>>(jsonObject, out var mappedDictionary))
+            return null;
 
         var errorDetails = mappedDictionary
             ?.SelectMany(kv => TryMapItem(kv))

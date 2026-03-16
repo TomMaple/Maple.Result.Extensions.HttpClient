@@ -118,7 +118,7 @@ public class ErrorBuilder
         if (!string.IsNullOrWhiteSpace(detailTemplated?.TemplateId))
             _detailTemplateId = detailTemplated.TemplateId;
 
-        if (detailTemplated?.Params is {Count:>0})
+        if (detailTemplated?.Params is { Count: > 0 })
         {
             _detailParams = detailTemplated.Params as Dictionary<string, object>
                             ?? detailTemplated.Params.ToDictionary();
@@ -186,11 +186,11 @@ public class ErrorBuilder
         if (string.IsNullOrWhiteSpace(detail)
             && string.IsNullOrWhiteSpace(propertyPointer)
             && string.IsNullOrWhiteSpace(messageId)
-            && namedValues is not {Length:>0})
+            && namedValues is not { Length: > 0 })
         {
             return this;
         }
-        
+
         var detailValue = detail?.Trim() ?? string.Empty;
         var detailTemplated = string.IsNullOrWhiteSpace(messageId)
             ? null

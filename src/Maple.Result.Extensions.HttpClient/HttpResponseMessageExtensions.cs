@@ -25,6 +25,8 @@ namespace Maple.Result.Extensions.HttpClient;
 /// </summary>
 public static class HttpResponseMessageExtensions
 {
+    #region Result, ProblemDetails
+
     public static Task<Result> ToResultAsync(this HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
@@ -34,6 +36,10 @@ public static class HttpResponseMessageExtensions
                 => ProblemDetailsMapper.Map(error, errorBuilder), jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
+
+    #endregion
+
+    #region Result, <TError>
 
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
         Action<TError?, ErrorBuilder> mapAction,
@@ -90,6 +96,10 @@ public static class HttpResponseMessageExtensions
         return MapToErrorAsync(response, mapAction, jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
+
+    #endregion
+
+    #region Result<T>, ProblemDetails
 
     public static Task<Result<T>> ToResultAsync<T>(this HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
@@ -104,6 +114,10 @@ public static class HttpResponseMessageExtensions
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
+    #endregion
+
+    #region Result<T>, <TError>
+
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
         Action<TError?, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -163,6 +177,10 @@ public static class HttpResponseMessageExtensions
         return MapToErrorAsync(response, mapAction, jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
+
+    #endregion
+
+    #region private methods
 
     private static async Task<Result<T>> MapSuccessResponseAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions)
         where T : notnull
@@ -254,4 +272,6 @@ public static class HttpResponseMessageExtensions
                 ("baseExceptionMessage", ex.GetBaseException().Message));
         }
     }
+
+    #endregion
 }

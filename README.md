@@ -14,10 +14,9 @@ Do you like it? Show your support by giving this project a star!
 
 # Status
 ✅ Basic mapping from `HttpResponseMessage` to `Maple.Result` and `Maple.Result<T>`  
-➡️ Integration tests.\
-🔲 Configuration passed as a parameter to the extension method.<br/>
-🔲 Support for global configuration.<br/>
-🔲 Documentation.<br/>
+➡️ Configuration passed as a parameter to the extension method.  
+➡️ Support for global configuration.  
+🔲 Documentation.  
 
 ## See also
 * [Problem Details for HTTP APIs - RFC 7807 is dead, long live RFC 9457](https://blog.frankel.ch/problem-details-http-apis/)

@@ -8,20 +8,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using Maple.Result.Extensions.HttpClient.Converters;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text.Json;
 
 namespace Maple.Result.Extensions.HttpClient.Helpers;
 
 internal static class JsonHelper
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNameCaseInsensitive = true,  // TODO: do we need that?
-        Converters = { new ObjectAsPrimitiveConverter() }
-    };
-
     internal static bool IsValidJson(string text, [NotNullWhen(true)] out JsonDocument? jsonDoc)
     {
         if (string.IsNullOrEmpty(text))
@@ -42,43 +37,76 @@ internal static class JsonHelper
         }
     }
 
-    internal static T? TryDeserialize<T>(JsonDocument jsonDocument)
+    internal static bool TryDeserialize<T>(JsonDocument jsonDocument, [NotNullWhen(true)] out T? value, JsonSerializerOptions? customOptions = null)
     {
+        var options = GetJsonSerializerOptions(customOptions);
+
         try
         {
             //return jsonDocument.RootElement.Deserialize<T>(JsonSerializerOptions);
-            return jsonDocument.Deserialize<T>(JsonSerializerOptions);
+            value = jsonDocument.Deserialize<T>(options);
+            return true;
         }
         catch
         {
-            return default;
+            value = default;
+            return false;
         }
     }
 
-    internal static T? TryDeserialize<T>(JsonElement jsonElement)
+    internal static bool TryDeserialize<T>(JsonElement jsonElement, [NotNullWhen(true)] out T? value, JsonSerializerOptions? customOptions = null)
     {
+        var options = GetJsonSerializerOptions(customOptions);
+
         try
         {
-            return jsonElement.Deserialize<T>(JsonSerializerOptions);
+            value = jsonElement.Deserialize<T>(options);
+            return true;
         }
         catch
         {
-            return default;
+            value = default;
+            return false;
         }
     }
 
-    internal static T? TryDeserialize<T>(string json)
+    internal static bool TryDeserialize<T>(string json, [NotNullWhen(true)] out T? value, JsonSerializerOptions? customOptions = null)
     {
+        var options = GetJsonSerializerOptions(customOptions);
+
         if (string.IsNullOrWhiteSpace(json))
-            return default;
+        {
+            value = default;
+            return false;
+        }
 
         try
         {
-            return JsonSerializer.Deserialize<T>(json, JsonSerializerOptions);
+            value = JsonSerializer.Deserialize<T?>(json, options);
+            return true;
         }
         catch
         {
-            return default;
+            value = default;
+            return false;
         }
     }
+
+    #region helper methods
+
+    private static JsonSerializerOptions GetJsonSerializerOptions(JsonSerializerOptions? customOptions)
+    {
+        if (customOptions is null)
+            return ResultSettingsForHttpClient.JsonSerializerOptions;
+
+        if (customOptions.Converters.Count == 0
+            || customOptions.Converters.All(x => x.GetType() != typeof(ObjectAsPrimitiveConverter)))
+        {
+            customOptions.Converters.Add(new ObjectAsPrimitiveConverter());
+        }
+
+        return customOptions;
+    }
+
+    #endregion
 }

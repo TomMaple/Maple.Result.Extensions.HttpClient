@@ -8,12 +8,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
 using Maple.Result.Extensions.HttpClient.Extensions;
 using Maple.Result.Extensions.HttpClient.Helpers;
 using Maple.Result.Extensions.HttpClient.InternalModels;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 
 namespace Maple.Result.Extensions.HttpClient.Mappers;
 
@@ -43,13 +43,13 @@ internal static class TemplatedMessageMapper
 
     private static TemplatedMessage? TryMap(JsonElement jsonElement)
     {
-        if (jsonElement is { ValueKind: JsonValueKind.Object })
-        {
-            var templatedMessageInternal = JsonHelper.TryDeserialize<TemplatedMessageInternal>(jsonElement);
-            return TryMap(templatedMessageInternal);
-        }
+        if (jsonElement is not { ValueKind: JsonValueKind.Object })
+            return null;
+        
+        if (!JsonHelper.TryDeserialize<TemplatedMessageInternal>(jsonElement, out var templatedMessageInternal))
+            return null;
 
-        return null;
+        return TryMap(templatedMessageInternal);
     }
 
     private static TemplatedMessage? TryMap(TemplatedMessageInternal? source)

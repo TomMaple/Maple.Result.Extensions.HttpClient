@@ -17,4 +17,9 @@ public static class ResultSettingsForHttpClient
         },
         DefaultIgnoreCondition = JsonIgnoreCondition.Never
     };
+
+    public static void ConfigureJsonSerializerOptions(Action<JsonSerializerOptions> configure)
+    {
+        configure(JsonSerializerOptions);
+    }
 }

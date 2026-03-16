@@ -2010,6 +2010,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
         result.Error.TypeUri.ShouldBe(BlankTypeUri);
         result.Error.Title.ShouldBe(ExpectedErrorTitle);
         result.Error.Detail.ShouldBeNull();
@@ -2048,6 +2049,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
         result.Error.TypeUri.ShouldBe(BlankTypeUri);
         result.Error.Title.ShouldBe(expectedErrorTitle);
         result.Error.Detail.ShouldBeNull();

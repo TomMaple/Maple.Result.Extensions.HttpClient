@@ -21,13 +21,34 @@ using Microsoft.AspNetCore.Mvc;
 namespace Maple.Result.Extensions.HttpClient;
 
 /// <summary>
-///     Contains extension methods to map the <see cref="HttpResponseMessage"/> to the <see cref="Result"/> and <see cref="Result{T}"/> types.
+///     Contains extension methods to map the <see cref="HttpResponseMessage" /> to the <see cref="Result" /> and
+///     <see cref="Result{T}" /> types.
 /// </summary>
 public static class HttpResponseMessageExtensions
 {
     #region Result, ProblemDetails
 
-    public static Task<Result> ToResultAsync(this HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions = null)
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result" /> object, interpreting successful responses as success and
+    ///     mapping error responses to a failure <see cref="Result" /> using the <c>ProblemDetails</c> type if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
+    public static Task<Result> ToResultAsync(this HttpResponseMessage response,
+        JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
@@ -41,6 +62,28 @@ public static class HttpResponseMessageExtensions
 
     #region Result, <TError>
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result" /> object, interpreting successful responses as success and
+    ///     mapping error responses to a failure <see cref="Result" /> using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
         Action<TError?, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -56,6 +99,28 @@ public static class HttpResponseMessageExtensions
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result" /> object, interpreting successful responses as success and
+    ///     mapping error responses to a failure <see cref="Result" /> using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
         Action<TError?, HttpStatusCode, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -71,6 +136,28 @@ public static class HttpResponseMessageExtensions
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result" /> object, interpreting successful responses as success and
+    ///     mapping error responses to a failure <see cref="Result" /> using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
         Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -80,12 +167,35 @@ public static class HttpResponseMessageExtensions
 
         return MapToErrorAsync(
                 response,
-                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _, ErrorBuilder errorBuilder)
+                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _,
+                        ErrorBuilder errorBuilder)
                     => mapAction(error, statusCode, headers, errorBuilder),
                 jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result" /> object, interpreting successful responses as success and
+    ///     mapping error responses to a failure <see cref="Result" /> using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
         Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -101,7 +211,32 @@ public static class HttpResponseMessageExtensions
 
     #region Result<T>, ProblemDetails
 
-    public static Task<Result<T>> ToResultAsync<T>(this HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions = null)
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result{T}" /> object, mapping successful responses to
+    ///     a value of the type <typeparamref name="T" /> and error responses to using the <c>ProblemDetails</c> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="T">
+    ///     The type of the value expected for the successful HTTP response.
+    ///     Must be a non-nullable reference type or a value type.
+    /// </typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
+    public static Task<Result<T>> ToResultAsync<T>(this HttpResponseMessage response,
+        JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
@@ -118,6 +253,32 @@ public static class HttpResponseMessageExtensions
 
     #region Result<T>, <TError>
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result{T}" /> object, mapping successful responses to
+    ///     a value of the type <typeparamref name="T" /> and error responses to using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="T">
+    ///     The type of the value expected for the successful HTTP response.
+    ///     Must be a non-nullable reference type or a value type.
+    /// </typeparam>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
         Action<TError?, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -134,6 +295,32 @@ public static class HttpResponseMessageExtensions
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result{T}" /> object, mapping successful responses to
+    ///     a value of the type <typeparamref name="T" /> and error responses to using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="T">
+    ///     The type of the value expected for the successful HTTP response.
+    ///     Must be a non-nullable reference type or a value type.
+    /// </typeparam>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
         Action<TError?, HttpStatusCode, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -150,6 +337,32 @@ public static class HttpResponseMessageExtensions
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result{T}" /> object, mapping successful responses to
+    ///     a value of the type <typeparamref name="T" /> and error responses to using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="T">
+    ///     The type of the value expected for the successful HTTP response.
+    ///     Must be a non-nullable reference type or a value type.
+    /// </typeparam>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
         Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -160,12 +373,39 @@ public static class HttpResponseMessageExtensions
 
         return MapToErrorAsync(
                 response,
-                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _, ErrorBuilder errorBuilder)
+                (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _,
+                        ErrorBuilder errorBuilder)
                     => mapAction(error, statusCode, headers, errorBuilder),
                 jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
+    /// <summary>
+    ///     Converts the HTTP response to a <see cref="Result{T}" /> object, mapping successful responses to
+    ///     a value of the type <typeparamref name="T" /> and error responses to using the <typeparamref name="TError" /> type
+    ///     if possible.
+    /// </summary>
+    /// <remarks>
+    ///     If the response indicates failure, the method attempts to extract problem details from the response content and
+    ///     map them to the <see cref="Error" /> value in the <see cref="Result" />. This method is typically used to
+    ///     standardize error handling for HTTP responses.
+    /// </remarks>
+    /// <typeparam name="T">
+    ///     The type of the value expected for the successful HTTP response.
+    ///     Must be a non-nullable reference type or a value type.
+    /// </typeparam>
+    /// <typeparam name="TError">The type of the error value expected for the unsuccessful HTTP response.</typeparam>
+    /// <param name="response">The HTTP response message to convert. Must not be <see langword="null" />.</param>
+    /// <param name="mapAction">The action that maps <typeparamref name="TError" /> type to <see cref="Error" /> type.</param>
+    /// <param name="jsonSerializerOptions">
+    ///     Optional JSON serializer options to use when deserializing the HTTP response content.
+    ///     If <see langword="null" />, default options are used.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains a <see cref="Result" />
+    ///     indicating success if the response status code is successful;
+    ///     otherwise, a failure <see cref="Result" /> containing error details.
+    /// </returns>
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
         Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction,
         JsonSerializerOptions? jsonSerializerOptions = null)
@@ -182,7 +422,8 @@ public static class HttpResponseMessageExtensions
 
     #region private methods
 
-    private static async Task<Result<T>> MapSuccessResponseAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions)
+    private static async Task<Result<T>> MapSuccessResponseAsync<T>(HttpResponseMessage response,
+        JsonSerializerOptions? jsonSerializerOptions)
         where T : notnull
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -227,7 +468,9 @@ public static class HttpResponseMessageExtensions
             "maple.result.httpClient.successResponse.json.deserialization.error");
     }
 
-    private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response, Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction, JsonSerializerOptions? jsonSerializerOptions)
+    private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response,
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions)
     {
         try
         {

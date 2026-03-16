@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using Maple.Result.Extensions.HttpClient.Helpers;
 
 namespace Maple.Result.Extensions.HttpClient.Tests.Unit;
@@ -59,6 +60,22 @@ public class HttpResponseMessageExtensionsUnitTests
                             
                             }
                             """;
+
+    private const string CustomErrorResponseJson = """
+                                                   {
+                                                       "code": 1234,
+                                                       "message": {
+                                                           "en": "Custom error message",
+                                                           "fr": "Message d'erreur personnalisé"
+                                                       },
+                                                       "errors": {
+                                                           "value1": {
+                                                               "en": "error1",
+                                                               "fr": "erreur1"
+                                                           }
+                                                       }
+                                                   }
+                                                   """;
 
     private const string ExpectedTypeUri = "https://example.com/probs/out-of-credit";
     private const string ExpectedTitle = "You do not have enough credit.";
@@ -467,6 +484,897 @@ public class HttpResponseMessageExtensionsUnitTests
 
     #endregion
 
+    #region Result<TError> (Action<TError?, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TErrorErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TErrorErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ErrorResponseWithStringContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        const string ErrorContent = "Error response content";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(ErrorContent) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ErrorResponseWithStringContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ErrorContent = "Error response content";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(ErrorContent) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ErrorContent);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ErrorResponseWithStringContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ErrorContent = "Error response content";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(ErrorContent) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson)};
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
+    #region Result<TError> (Action<TError?, HttpStatusCode, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+        result.Error.Detail.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable")]
+    public async Task ToResultAsync_TErrorHttpStatusCodeErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBe(expectedErrorDetail);
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
+    #region Result<TError> (Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+        result.Error.Detail.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable")]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBe(expectedErrorDetail);
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
+    #region Result<TError> (Action<TError?, HttpStatusCode, HttpResponseHeaders, String, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+        result.Error.Detail.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest (249)")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized (249)")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden (249)")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound (249)")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout (249)")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout (249)")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict (249)")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity (249)")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError (249)")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented (249)")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable (249)")]
+    public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBe(expectedErrorDetail);
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
     #region Result<T>
 
     [Theory]
@@ -615,6 +1523,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeTrue();
         result.Value.ShouldBe(expectedValue);
+        result.Value.EmailAddress.ShouldBe(expectedValue.EmailAddress);
     }
 
     [Theory]
@@ -694,18 +1603,19 @@ public class HttpResponseMessageExtensionsUnitTests
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation, "Bad Request")]
-    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated, "Unauthorized")]
-    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized, "Forbidden")]
-    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound, "Not Found")]
-    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout, "Request Timeout")]
-    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout, "Gateway Timeout")]
-    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict, "Conflict")]
-    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure, "Unprocessable Entity")]
-    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical, "Internal Server Error")]
-    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented, "Not Implemented")]
-    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable, "Service Unavailable")]
-    public async Task ToResultAsync_ErrorResultWithoutResponse_ReturnsFailedValueResultWithDefaultTitle(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory, string expectedErrorTitle)
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_ErrorResultWithoutResponse_ReturnsFailedValueResultWithDefaultTitle(
+        HttpStatusCode statusCode, string expectedErrorTitle)
     {
         // Arrange
         var httpResponseMessage = new HttpResponseMessage(statusCode);
@@ -793,9 +1703,213 @@ public class HttpResponseMessageExtensionsUnitTests
         validValueIds.ShouldBe(ExpectedErrors[1].DetailTemplated!.Params!["validValueIds"]);
     }
 
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidIntValue_ReturnsFailedResult()
+    {
+        // Arrange
+        const string InputValue = "45m8";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(InputValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<int>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidDecimalValue_ReturnsFailedResult()
+    {
+        // Arrange
+        const string InputValue = "Zero";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(InputValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<int>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidEnumValue_ReturnsFailedResult()
+    {
+        // Arrange
+        const string InputValue = "Unauthenticated";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(InputValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<HttpStatusCode>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidQuotedEnumValue_ReturnsFailedResult()
+    {
+        // Arrange
+        const string InputValue = "Unauthenticated";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent($"\"{InputValue}\"") };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<HttpStatusCode>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidStructValueTypes_ReturnsFailedResult()
+    {
+        // Arrange
+        const string TextValue = """{"EmailAddress":9,"EmailName":true}""";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<EmailDetail>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Theory]
+    [InlineData("""{"AnotherProperty":"test@example.com","NotExistingProperty":"Test User"}""")]
+    [InlineData("{}")]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidStructValue_ReturnsEmptyResult(string textValue)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(textValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<EmailDetail>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.EmailAddress.ShouldBeNull();
+        result.Value.EmailName.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidRecordValueTypes_ReturnsFailedResult()
+    {
+        // Arrange
+        const string TextValue = """{"Id":"invalidId","EmailAddress":9,"EmailName":true}""";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<UserDetail>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Theory]
+    [InlineData("""{"AnotherProperty":"test@example.com","NotExistingProperty":"Test User"}""")]
+    [InlineData("{}")]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidRecordValue_ReturnsEmptyResult(string textValue)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(textValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<UserDetail>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Id.ShouldBe(0);
+        result.Value.DisplayName.ShouldBeNull();
+        result.Value.Name.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidRecordStructValue_ReturnsFailedResult()
+    {
+        // Arrange
+        const string TextValue = """{"CountryCode":1,"EmailAddress":9,"EmailName":true}""";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<PhoneNumber>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
+    }
+
+    [Theory]
+    [InlineData("""{"AnotherProperty":"test@example.com","NotExistingProperty":"Test User"}""")]
+    [InlineData("{}")]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidRecordStructValue_ReturnsEmptyResult(string textValue)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(textValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<PhoneNumber>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.CountryCode.ShouldBeNull();
+        result.Value.Number.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData("""{"AnotherProperty":"test@example.com","NotExistingProperty":"Test User"}""")]
+    [InlineData("{}")]
+    public async Task ToResultAsync_SuccessfulResponseWithInvalidClassValue_ReturnsEmptyResult(string textValue)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(textValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User>();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Id.ShouldBe(Guid.Empty);
+        result.Value.DisplayName.ShouldBeEmpty();
+        result.Value.FirstName.ShouldBeEmpty();
+        result.Value.LastName.ShouldBeEmpty();
+        result.Value.YearOfBirth.ShouldBe((ushort)0);
+    }
+
     #endregion
 
-    #region Result<T, TError>
+    #region Result<T, TError> (Action<TError?, ErrorBuilder>)
 
     [Theory]
     [InlineData(HttpStatusCode.OK)]
@@ -803,7 +1917,7 @@ public class HttpResponseMessageExtensionsUnitTests
     [InlineData(HttpStatusCode.Accepted)]
     [InlineData(HttpStatusCode.NoContent)]
     [InlineData(HttpStatusCode.PartialContent)]
-    public async Task ToResultAsync_SuccessfulResponseWithValueAndErrorType_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    public async Task ToResultAsync_TTErrorErrorBuilder_SuccessfulResponseWithValueAndErrorType_ReturnsSuccessfulResult(HttpStatusCode statusCode)
     {
         // Arrange
         const string TextValue = """{"Id":"0cc844ae-8a9a-4c89-9034-22032ae19c39","DisplayName":"Test User","FirstName":"John","LastName":"Doe","YearOfBirth":1990}""";
@@ -819,12 +1933,30 @@ public class HttpResponseMessageExtensionsUnitTests
         var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
 
         // Act
-        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map);
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map1);
 
         // Assert
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeTrue();
         result.Value.ShouldBeEquivalentTo(expectedValue);
+    }
+
+    [Fact]
+    public async Task ToResultAsync_TTErrorErrorBuilder_SuccessfulResponseWithInvalidValueAndErrorType_ReturnsFailedResult()
+    {
+        // Arrange
+        const string TextValue = """{"Id":111,"InvalidProperty":222,"YearOfBirth":1990}""";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map1);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
     [Theory]
@@ -839,7 +1971,7 @@ public class HttpResponseMessageExtensionsUnitTests
     [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
     [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
     [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
-    public async Task ToResultAsync_CustomErrorResponseAndErrorContent_ReturnsFailedValueResultWithMappedProperties(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    public async Task ToResultAsync_TTErrorErrorBuilder_CustomErrorResponseAndErrorContent_ReturnsFailedValueResultWithMappedProperties(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
     {
         // Arrange
         const string ExpectedErrorTitle = "The report has been rejected";
@@ -872,7 +2004,7 @@ public class HttpResponseMessageExtensionsUnitTests
         var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(json) };
 
         // Act
-        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map);
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map1);
 
         // Assert
         result.ShouldNotBeNull();
@@ -904,13 +2036,13 @@ public class HttpResponseMessageExtensionsUnitTests
     [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical, "Internal Server Error")]
     [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented, "Not Implemented")]
     [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable, "Service Unavailable")]
-    public async Task ToResultAsync_CustomErrorResponseWithoutContent_ReturnsFailedValueResultWithDefaultTitle(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory, string expectedErrorTitle)
+    public async Task ToResultAsync_TTErrorErrorBuilder_CustomErrorResponseWithoutContent_ReturnsFailedValueResultWithDefaultTitle(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory, string expectedErrorTitle)
     {
         // Arrange
         var httpResponseMessage = new HttpResponseMessage(statusCode);
 
         // Act
-        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map);
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map1);
 
         // Assert
         result.ShouldNotBeNull();
@@ -926,9 +2058,649 @@ public class HttpResponseMessageExtensionsUnitTests
 
     #endregion
 
+    #region Result<T, TError> (Action<TError?, HttpStatusCode, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string TextValue = """{"Id":"0cc844ae-8a9a-4c89-9034-22032ae19c39","DisplayName":"Test User","FirstName":"John","LastName":"Doe","YearOfBirth":1990}""";
+        var expectedValue = new User
+        {
+            Id = new Guid("0cc844ae-8a9a-4c89-9034-22032ae19c39"),
+            DisplayName = "Test User",
+            FirstName = "John",
+            LastName = "Doe",
+            YearOfBirth = 1990
+        };
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.ShouldBeEquivalentTo(expectedValue);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+        result.Error.Detail.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable")]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map2);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBe(expectedErrorDetail);
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
+    #region Result<TError> (Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string TextValue = """{"Id":"0cc844ae-8a9a-4c89-9034-22032ae19c39","DisplayName":"Test User","FirstName":"John","LastName":"Doe","YearOfBirth":1990}""";
+        var expectedValue = new User
+        {
+            Id = new Guid("0cc844ae-8a9a-4c89-9034-22032ae19c39"),
+            DisplayName = "Test User",
+            FirstName = "John",
+            LastName = "Doe",
+            YearOfBirth = 1990
+        };
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.ShouldBeEquivalentTo(expectedValue);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+        result.Error.Detail.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable")]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map3);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBe(expectedErrorDetail);
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
+    #region Result<TError> (Action<TError?, HttpStatusCode, HttpResponseHeaders, String, ErrorBuilder>)
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.Accepted)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.PartialContent)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_SuccessfulResponseWithoutContent_ReturnsSuccessfulResult(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string TextValue = """{"Id":"0cc844ae-8a9a-4c89-9034-22032ae19c39","DisplayName":"Test User","FirstName":"John","LastName":"Doe","YearOfBirth":1990}""";
+        var expectedValue = new User
+        {
+            Id = new Guid("0cc844ae-8a9a-4c89-9034-22032ae19c39"),
+            DisplayName = "Test User",
+            FirstName = "John",
+            LastName = "Doe",
+            YearOfBirth = 1990
+        };
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeTrue();
+        result.Value.ShouldBeEquivalentTo(expectedValue);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+        result.Error.Detail.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Bad Request")]
+    [InlineData(HttpStatusCode.Unauthorized, "Unauthorized")]
+    [InlineData(HttpStatusCode.Forbidden, "Forbidden")]
+    [InlineData(HttpStatusCode.NotFound, "Not Found")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Request Timeout")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Gateway Timeout")]
+    [InlineData(HttpStatusCode.Conflict, "Conflict")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Unprocessable Entity")]
+    [InlineData(HttpStatusCode.InternalServerError, "Internal Server Error")]
+    [InlineData(HttpStatusCode.NotImplemented, "Not Implemented")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithDefaultTitle(HttpStatusCode statusCode, string expectedErrorTitle)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(expectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ErrorResponseWithoutContent_ReturnsFailedResultWithEmptyOtherProperties(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode);
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBeNull();
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, ErrorCategory.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, ErrorCategory.Unauthenticated)]
+    [InlineData(HttpStatusCode.Forbidden, ErrorCategory.Unauthorized)]
+    [InlineData(HttpStatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout, ErrorCategory.Timeout)]
+    [InlineData(HttpStatusCode.Conflict, ErrorCategory.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, ErrorCategory.Failure)]
+    [InlineData(HttpStatusCode.InternalServerError, ErrorCategory.Critical)]
+    [InlineData(HttpStatusCode.NotImplemented, ErrorCategory.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, ErrorCategory.Unavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
+    {
+        // Arrange
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(expectedErrorCategory);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.NotImplemented)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedTitle(HttpStatusCode statusCode)
+    {
+        // Arrange
+        const string ExpectedErrorTitle = "Custom error message";
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Title.ShouldBe(ExpectedErrorTitle);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest (249)")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized (249)")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden (249)")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound (249)")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout (249)")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout (249)")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict (249)")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity (249)")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError (249)")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented (249)")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable (249)")]
+    public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
+    {
+        // Arrange
+        const int ExpectedErrorDetailsCount = 1;
+        const string ExpectedErrorDetailPointer = "value1";
+        const string ExpectedErrorDetailMessage = "error1";
+
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
+
+        // Act
+        var result = await httpResponseMessage.ToResultAsync<User, CustomErrorResponse>(CustomErrorResponseMapper.Map4);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.TypeUri.ShouldBe(BlankTypeUri);
+        result.Error.Detail.ShouldBe(expectedErrorDetail);
+        result.Error.DetailTemplated.ShouldBeNull();
+        result.Error.InstanceUri.ShouldBeNull();
+        result.Error.ErrorDetails.Count.ShouldBe(ExpectedErrorDetailsCount);
+        result.Error.ErrorDetails[0].PropertyPointer.ShouldBe(ExpectedErrorDetailPointer);
+        result.Error.ErrorDetails[0].Detail.ShouldBe(ExpectedErrorDetailMessage);
+    }
+
+    #endregion
+
     #region helper types
 
-    private struct EmailDetail(string EmailAddress, string? EmailName);
+    public struct EmailDetail(string EmailAddress, string? EmailName)
+    {
+        public string EmailAddress { get; init; } = EmailAddress;
+        public string? EmailName { get; init; } = EmailName;
+    }
 
     private record UserDetail(int Id, string DisplayName, string Name);
 
@@ -960,12 +2732,74 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         private const string EnglishCode = "en";
 
-        internal static void Map(CustomErrorResponse? customError, ErrorBuilder errorBuilder)
+        internal static void Map1(CustomErrorResponse? customError, ErrorBuilder errorBuilder)
         {
             if (customError is null)
                 return;
 
             errorBuilder.WithTitle(customError.Message.En);
+
+            foreach (var error in customError.Errors)
+            {
+                var message = error.Value.GetValueOrDefault(EnglishCode);
+                if (string.IsNullOrWhiteSpace(message))
+                    continue;
+
+                errorBuilder.WithErrorDetail(error.Key, message);
+            }
+        }
+
+        internal static void Map2(CustomErrorResponse? customError, HttpStatusCode statusCode, ErrorBuilder errorBuilder)
+        {
+            if (customError is null)
+                return;
+
+            var errorDescription = $"Error with HTTP status code: {statusCode}";
+            errorBuilder
+                .WithTitle(customError.Message.En)
+                .WithDetail(errorDescription);
+
+            foreach (var error in customError.Errors)
+            {
+                var message = error.Value.GetValueOrDefault(EnglishCode);
+                if (string.IsNullOrWhiteSpace(message))
+                    continue;
+
+                errorBuilder.WithErrorDetail(error.Key, message);
+            }
+        }
+
+        internal static void Map3(CustomErrorResponse? customError, HttpStatusCode statusCode,
+            HttpResponseHeaders headers, ErrorBuilder errorBuilder)
+        {
+            if (customError is null)
+                return;
+
+            var errorDescription = $"Error with HTTP status code: {statusCode}";
+            errorBuilder
+                .WithTitle(customError.Message.En)
+                .WithDetail(errorDescription);
+
+            foreach (var error in customError.Errors)
+            {
+                var message = error.Value.GetValueOrDefault(EnglishCode);
+                if (string.IsNullOrWhiteSpace(message))
+                    continue;
+
+                errorBuilder.WithErrorDetail(error.Key, message);
+            }
+        }
+
+        internal static void Map4(CustomErrorResponse? customError, HttpStatusCode statusCode,
+            HttpResponseHeaders headers, string errorContent, ErrorBuilder errorBuilder)
+        {
+            if (customError is null)
+                return;
+
+            var errorDescription = $"Error with HTTP status code: {statusCode} ({errorContent.Length})";
+            errorBuilder
+                .WithTitle(customError.Message.En)
+                .WithDetail(errorDescription);
 
             foreach (var error in customError.Errors)
             {

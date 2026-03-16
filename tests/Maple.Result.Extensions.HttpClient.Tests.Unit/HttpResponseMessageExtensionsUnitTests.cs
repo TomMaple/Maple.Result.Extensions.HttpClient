@@ -1337,17 +1337,17 @@ public class HttpResponseMessageExtensionsUnitTests
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest (249)")]
-    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized (249)")]
-    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden (249)")]
-    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound (249)")]
-    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout (249)")]
-    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout (249)")]
-    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict (249)")]
-    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity (249)")]
-    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError (249)")]
-    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented (249)")]
-    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable (249)")]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest (225)")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized (225)")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden (225)")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound (225)")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout (225)")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout (225)")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict (225)")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity (225)")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError (225)")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented (225)")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable (225)")]
     public async Task ToResultAsync_TErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
     {
         // Arrange
@@ -2658,17 +2658,17 @@ public class HttpResponseMessageExtensionsUnitTests
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest (249)")]
-    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized (249)")]
-    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden (249)")]
-    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound (249)")]
-    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout (249)")]
-    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout (249)")]
-    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict (249)")]
-    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity (249)")]
-    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError (249)")]
-    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented (249)")]
-    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable (249)")]
+    [InlineData(HttpStatusCode.BadRequest, "Error with HTTP status code: BadRequest (225)")]
+    [InlineData(HttpStatusCode.Unauthorized, "Error with HTTP status code: Unauthorized (225)")]
+    [InlineData(HttpStatusCode.Forbidden, "Error with HTTP status code: Forbidden (225)")]
+    [InlineData(HttpStatusCode.NotFound, "Error with HTTP status code: NotFound (225)")]
+    [InlineData(HttpStatusCode.RequestTimeout, "Error with HTTP status code: RequestTimeout (225)")]
+    [InlineData(HttpStatusCode.GatewayTimeout, "Error with HTTP status code: GatewayTimeout (225)")]
+    [InlineData(HttpStatusCode.Conflict, "Error with HTTP status code: Conflict (225)")]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "Error with HTTP status code: UnprocessableEntity (225)")]
+    [InlineData(HttpStatusCode.InternalServerError, "Error with HTTP status code: InternalServerError (225)")]
+    [InlineData(HttpStatusCode.NotImplemented, "Error with HTTP status code: NotImplemented (225)")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Error with HTTP status code: ServiceUnavailable (225)")]
     public async Task ToResultAsync_TTErrorHttpStatusCodeHttpResponseHeadersStringErrorBuilder_ValidErrorResponse_ReturnsFailedResultWithMappedProperties(HttpStatusCode statusCode, string expectedErrorDetail)
     {
         // Arrange
@@ -2798,7 +2798,8 @@ public class HttpResponseMessageExtensionsUnitTests
             if (customError is null)
                 return;
 
-            var errorDescription = $"Error with HTTP status code: {statusCode} ({errorContent.Length})";
+            var length = errorContent.ReplaceLineEndings("").Length;
+            var errorDescription = $"Error with HTTP status code: {statusCode} ({length})";
             errorBuilder
                 .WithTitle(customError.Message.En)
                 .WithDetail(errorDescription);

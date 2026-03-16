@@ -27,122 +27,146 @@ namespace Maple.Result.Extensions.HttpClient;
 /// </summary>
 public static class HttpResponseMessageExtensions
 {
-    public static Task<Result> ToResultAsync(this HttpResponseMessage response)
+    public static Task<Result> ToResultAsync(this HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
 
-        return MapToErrorAsync<ProblemDetailsInternal>(response, (error, _, _, _, errorBuilder) => ProblemDetailsMapper.Map(error, errorBuilder))
+        return MapToErrorAsync<ProblemDetailsInternal>(response, (error, _, _, _, errorBuilder)
+                => ProblemDetailsMapper.Map(error, errorBuilder), jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
-        Action<TError?, ErrorBuilder> mapAction)
+        Action<TError?, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
 
-        return MapToErrorAsync(response,
+        return MapToErrorAsync(
+                response,
                 (TError? error, HttpStatusCode _, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
-                    => mapAction(error, errorBuilder))
+                    => mapAction(error, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
-        Action<TError?, HttpStatusCode, ErrorBuilder> mapAction)
+        Action<TError?, HttpStatusCode, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
 
-        return MapToErrorAsync(response,
+        return MapToErrorAsync(
+                response,
                 (TError? error, HttpStatusCode statusCode, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
-                    => mapAction(error, statusCode, errorBuilder))
+                    => mapAction(error, statusCode, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
-        Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction)
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
 
-        return MapToErrorAsync(response,
+        return MapToErrorAsync(
+                response,
                 (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _, ErrorBuilder errorBuilder)
-                    => mapAction(error, statusCode, headers, errorBuilder))
+                    => mapAction(error, statusCode, headers, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
     public static Task<Result> ToResultAsync<TError>(this HttpResponseMessage response,
-        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction)
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (response.IsSuccessStatusCode)
             return Task.FromResult(Result.Success());
 
-        return MapToErrorAsync(response, mapAction)
+        return MapToErrorAsync(response, mapAction, jsonSerializerOptions)
             .ContinueWith(t => Result.FromError(t.Result));
     }
 
-    public static Task<Result<T>> ToResultAsync<T>(this HttpResponseMessage response)
+    public static Task<Result<T>> ToResultAsync<T>(this HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
-            return MapSuccessResponseAsync<T>(response);
+            return MapSuccessResponseAsync<T>(response, jsonSerializerOptions);
 
-        return MapToErrorAsync<ProblemDetailsInternal>(response, (error, _, _, _, errorBuilder) => ProblemDetailsMapper.Map(error, errorBuilder))
+        return MapToErrorAsync<ProblemDetailsInternal>(
+                response,
+                (error, _, _, _, errorBuilder) => ProblemDetailsMapper.Map(error, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
-        Action<TError?, ErrorBuilder> mapAction)
+        Action<TError?, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
-            return MapSuccessResponseAsync<T>(response);
+            return MapSuccessResponseAsync<T>(response, jsonSerializerOptions);
 
-        return MapToErrorAsync(response,
+        return MapToErrorAsync(
+                response,
                 (TError? error, HttpStatusCode _, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
-                    => mapAction(error, errorBuilder))
+                    => mapAction(error, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
-        Action<TError?, HttpStatusCode, ErrorBuilder> mapAction)
+        Action<TError?, HttpStatusCode, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
-            return MapSuccessResponseAsync<T>(response);
+            return MapSuccessResponseAsync<T>(response, jsonSerializerOptions);
 
-        return MapToErrorAsync(response,
+        return MapToErrorAsync(
+                response,
                 (TError? error, HttpStatusCode statusCode, HttpResponseHeaders _, string _, ErrorBuilder errorBuilder)
-                    => mapAction(error, statusCode, errorBuilder))
+                    => mapAction(error, statusCode, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
-        Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction)
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
-            return MapSuccessResponseAsync<T>(response);
+            return MapSuccessResponseAsync<T>(response, jsonSerializerOptions);
 
-        return MapToErrorAsync(response,
+        return MapToErrorAsync(
+                response,
                 (TError? error, HttpStatusCode statusCode, HttpResponseHeaders headers, string _, ErrorBuilder errorBuilder)
-                    => mapAction(error, statusCode, headers, errorBuilder))
+                    => mapAction(error, statusCode, headers, errorBuilder),
+                jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
     public static Task<Result<T>> ToResultAsync<T, TError>(this HttpResponseMessage response,
-        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction)
+        Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction,
+        JsonSerializerOptions? jsonSerializerOptions = null)
         where T : notnull
     {
         if (response.IsSuccessStatusCode)
-            return MapSuccessResponseAsync<T>(response);
+            return MapSuccessResponseAsync<T>(response, jsonSerializerOptions);
 
-        return MapToErrorAsync(response, mapAction)
+        return MapToErrorAsync(response, mapAction, jsonSerializerOptions)
             .ContinueWith(t => Result<T>.FromError(t.Result));
     }
 
-    private static async Task<Result<T>> MapSuccessResponseAsync<T>(HttpResponseMessage response)
+    private static async Task<Result<T>> MapSuccessResponseAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions)
         where T : notnull
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -187,7 +211,7 @@ public static class HttpResponseMessageExtensions
             "maple.result.httpClient.successResponse.json.deserialization.error");
     }
 
-    private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response, Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction)
+    private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response, Action<TError?, HttpStatusCode, HttpResponseHeaders, string, ErrorBuilder> mapAction, JsonSerializerOptions? jsonSerializerOptions)
     {
         try
         {

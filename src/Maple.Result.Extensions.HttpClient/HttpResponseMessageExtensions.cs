@@ -447,25 +447,10 @@ public static class HttpResponseMessageExtensions
         }
         catch (Exception ex)
         {
-            return Error.Failure(
-                ErrorUri.Tag("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid"),
-                "Failed to deserialize the HTTP response content.",
-                $"Error occured when deserializing the HTTP response content to the {typeof(T).FullName}: “{ex.Message}”.",
-                null,
-                "maple.result.httpClient.successResponse.json.deserialization.exception",
-                ("exceptionType", ex.GetType().FullName ?? ex.GetType().Name),
-                ("baseExceptionType",
-                    ex.GetBaseException().GetType().FullName ?? ex.GetBaseException().GetType().Name),
-                ("exceptionMessage", ex.Message),
-                ("baseExceptionMessage", ex.GetBaseException().Message));
+            return Errors.Deserialization.CreateUnprocessableSuccessJson(typeof(T).FullName ?? typeof(T).Name, ex);
         }
 
-        return Error.Failure(
-            ErrorUri.Tag("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid"),
-            "Failed to deserialize the HTTP response content.",
-            $"Failed to deserialize the HTTP response content to the {typeof(T).FullName}.",
-            null,
-            "maple.result.httpClient.successResponse.json.deserialization.error");
+        return Errors.Deserialization.CreateUnprocessableSuccessJson(typeof(T).FullName ?? typeof(T).Name);
     }
 
     private static async Task<Error> MapToErrorAsync<TError>(HttpResponseMessage response,
@@ -503,16 +488,7 @@ public static class HttpResponseMessageExtensions
         }
         catch (Exception ex)
         {
-            return Error.Failure(
-                ErrorUri.Tag("tag:mapledev.engineer,2026:result.httpClient.errorResponse.json.invalid"),
-                "Failed to deserialize the HTTP error response content.",
-                $"Error occured when deserializing the HTTP error response content to the {typeof(TError).FullName}: “{ex.Message}”.",
-                null,
-                "maple.result.httpClient.errorResponse.json.deserialization.exception",
-                ("exceptionType", ex.GetType().FullName ?? ex.GetType().Name),
-                ("baseExceptionType", ex.GetBaseException().GetType().FullName ?? ex.GetBaseException().GetType().Name),
-                ("exceptionMessage", ex.Message),
-                ("baseExceptionMessage", ex.GetBaseException().Message));
+            return Errors.Deserialization.CreateUnprocessableErrorJson(typeof(TError).FullName ?? typeof(TError).Name, ex);
         }
     }
 

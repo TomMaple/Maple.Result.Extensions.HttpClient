@@ -1717,7 +1717,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1735,7 +1735,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1753,7 +1753,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1771,7 +1771,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1789,7 +1789,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1825,7 +1825,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1863,7 +1863,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 
@@ -1955,7 +1955,7 @@ public class HttpResponseMessageExtensionsUnitTests
         result.ShouldNotBeNull();
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026:result.httpClient.successResponse.json.invalid");
+        result.Error.TypeUri.ShouldBe("tag:mapledev.engineer,2026-03-03:result.httpClient.successResponse.json.invalid");
         result.Error.Title.ShouldBe("Failed to deserialize the HTTP response content.");
     }
 

@@ -34,7 +34,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Maple.Result" Version="1.39.1" />
+    <PackageReference Include="Maple.Json.ObjectAsPrimitiveConverter" Version="2.0.14" />
+    <PackageReference Include="Maple.Result" Version="2.6.0" />
   </ItemGroup>
 
   <ItemGroup>

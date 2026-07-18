@@ -45,7 +45,7 @@ internal static class JsonHelper
         {
             //return jsonDocument.RootElement.Deserialize<T>(JsonSerializerOptions);
             value = jsonDocument.Deserialize<T>(options);
-            return true;
+            return value is not null;
         }
         catch
         {
@@ -61,7 +61,7 @@ internal static class JsonHelper
         try
         {
             value = jsonElement.Deserialize<T>(options);
-            return true;
+            return value is not null;
         }
         catch
         {
@@ -83,7 +83,7 @@ internal static class JsonHelper
         try
         {
             value = JsonSerializer.Deserialize<T?>(json, options);
-            return true;
+            return value is not null;
         }
         catch
         {

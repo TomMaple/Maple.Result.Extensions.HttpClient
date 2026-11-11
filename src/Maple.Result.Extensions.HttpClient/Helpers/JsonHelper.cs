@@ -11,12 +11,19 @@
 using Maple.Json.ObjectAsPrimitiveConverter;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Maple.Result.Extensions.HttpClient.Helpers;
 
 internal static class JsonHelper
 {
+    #region fields
+
+    private static readonly ConditionalWeakTable<JsonSerializerOptions, JsonSerializerOptions> OptionsWithConverter = new();
+
+    #endregion
+
     internal static bool IsValidJson(string text, [NotNullWhen(true)] out JsonDocument? jsonDoc)
     {
         if (string.IsNullOrEmpty(text))
@@ -99,13 +106,19 @@ internal static class JsonHelper
         if (customOptions is null)
             return ResultSettingsForHttpClient.JsonSerializerOptions;
 
-        if (customOptions.Converters.Count == 0
-            || customOptions.Converters.All(x => x.GetType() != typeof(ObjectAsPrimitiveConverter)))
-        {
-            customOptions.Converters.Add(new ObjectAsPrimitiveConverter());
-        }
+        if (customOptions.Converters.Any(x => x.GetType() == typeof(ObjectAsPrimitiveConverter)))
+            return customOptions;
 
-        return customOptions;
+        return OptionsWithConverter.GetValue(customOptions, CreateOptionsWithConverter);
+    }
+
+    private static JsonSerializerOptions CreateOptionsWithConverter(JsonSerializerOptions source)
+    {
+        // The caller's instance may be read-only or shared, so the converter is added to a copy.
+        var options = new JsonSerializerOptions(source);
+        options.Converters.Add(new ObjectAsPrimitiveConverter());
+
+        return options;
     }
 
     #endregion

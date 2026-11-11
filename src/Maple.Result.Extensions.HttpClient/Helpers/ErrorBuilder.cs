@@ -120,7 +120,7 @@ public class ErrorBuilder
 
         if (detailTemplated?.Params is { Count: > 0 })
         {
-            _detailParams ??= [];
+            _detailParams = [];
 
             foreach (var (key, value) in detailTemplated.Params) 
                 _detailParams[key] = value;
@@ -142,8 +142,8 @@ public class ErrorBuilder
 
         if (namedValues is not null)
         {
-            _detailParams ??= [];
-            
+            _detailParams = [];
+
             foreach (var (key, value) in namedValues) 
                 _detailParams[key] = value;
         }

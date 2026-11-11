@@ -120,8 +120,10 @@ public class ErrorBuilder
 
         if (detailTemplated?.Params is { Count: > 0 })
         {
-            _detailParams = detailTemplated.Params as Dictionary<string, object>
-                            ?? detailTemplated.Params.ToDictionary();
+            _detailParams ??= [];
+
+            foreach (var (key, value) in detailTemplated.Params) 
+                _detailParams[key] = value;
         }
 
         return this;
@@ -133,12 +135,19 @@ public class ErrorBuilder
     /// <param name="templateId">The ID of the template to generate localized error detail.</param>
     /// <param name="namedValues">The map of parameters to generate localized error detail.</param>
     /// <returns>The current <see cref="ErrorBuilder" /> instance with the updated templated detail.</returns>
-    public ErrorBuilder WithDetailTemplated(string? templateId, Dictionary<string, object>? namedValues = null)
+    public ErrorBuilder WithDetailTemplated(string? templateId, IEnumerable<KeyValuePair<string, object>>? namedValues = null)
     {
         if (!string.IsNullOrWhiteSpace(templateId))
             _detailTemplateId = templateId;
 
-        _detailParams = namedValues;
+        if (namedValues is not null)
+        {
+            _detailParams ??= [];
+            
+            foreach (var (key, value) in namedValues) 
+                _detailParams[key] = value;
+        }
+
         return this;
     }
 
@@ -198,6 +207,16 @@ public class ErrorBuilder
 
         _errorDetails ??= [];
         _errorDetails.Add(new ErrorDetail(propertyPointer, detailValue, detailTemplated));
+
+        return this;
+    }
+
+    internal ErrorBuilder WithDetailParam(string defaultTemplateId, string key, object value)
+    {
+        _detailTemplateId ??= defaultTemplateId;
+        _detailParams ??= [];
+
+        _detailParams.TryAdd(key, value);
 
         return this;
     }

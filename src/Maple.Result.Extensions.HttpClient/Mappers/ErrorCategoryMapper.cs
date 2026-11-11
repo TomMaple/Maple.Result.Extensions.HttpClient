@@ -27,7 +27,7 @@ internal static class ErrorCategoryMapper
             HttpStatusCode.UnprocessableContent => ErrorCategory.Failure,
             HttpStatusCode.InternalServerError => ErrorCategory.Critical,
             HttpStatusCode.NotImplemented => ErrorCategory.NotImplemented,
-            HttpStatusCode.ServiceUnavailable => ErrorCategory.Unavailable,
+            HttpStatusCode.ServiceUnavailable or HttpStatusCode.TooManyRequests => ErrorCategory.Unavailable,
             _ => ErrorCategory.Failure
         };
     }

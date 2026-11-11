@@ -482,6 +482,7 @@ public static class HttpResponseMessageExtensions
 
             var errorBuilder = new ErrorBuilder(errorCategory, errorTitle);
             mapAction(mappedError, response.StatusCode, response.Headers, errorContent, errorBuilder);
+            RetryAfterMapper.Map(response.StatusCode, response.Headers.RetryAfter, errorBuilder);
             var error = errorBuilder.Build();
 
             return error;

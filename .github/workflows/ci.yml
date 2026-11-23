@@ -79,18 +79,29 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
+    # Until the first v* tag exists (the release backfill, #13), git-cliff cannot bump a version (it fails), so it is
+    # skipped and the CI packages are versioned 0.0.0-ci.N.
+    - name: Check for version tags
+      id: tags
+      run: |
+        if [ -n "$(git tag -l 'v*')" ]; then
+          echo "exist=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exist=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Get bumped version
       id: git_cliff
+      if: steps.tags.outputs.exist == 'true'
       uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
       with:
         version: v2.14.2
         args: --bumped-version
 
-    # Until the first v* tag exists (the release backfill, #13), the CI packages are versioned 0.0.0-ci.N.
     - name: Calculate version
       id: calculate_version
       run: |
-        if [ -n "$(git tag -l 'v*')" ]; then
+        if [ "$TAGS_EXIST" = "true" ]; then
           NEXT=$(python3 -I .github/scripts/version.py next "$BUMPED")
         else
           NEXT=0.0.0
@@ -101,6 +112,7 @@ jobs:
         echo "Package version: ${NEXT}-ci.${RUN_NUMBER}"
         echo "Informational version: ${NEXT}-ci.${RUN_NUMBER}+${COMMIT}"
       env:
+        TAGS_EXIST: ${{ steps.tags.outputs.exist }}
         BUMPED: ${{ steps.git_cliff.outputs.content }}
         RUN_NUMBER: ${{ github.run_number }}
         COMMIT: ${{ github.sha }}

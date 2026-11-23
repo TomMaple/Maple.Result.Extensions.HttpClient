@@ -1,0 +1,57 @@
+# Checks that the pull request title and the commit subjects follow Conventional Commits (see docs/conventions.md).
+# A squash merge turns the title into the commit on main, which git-cliff reads for the release notes and the version.
+# "pr-title" is a required status check: keep the name, and never add a "paths" filter.
+# "commits" is advisory; it must pass before a pull request is merged with a merge commit.
+
+name: PR lint
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [ opened, edited, synchronize, reopened ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: .github/scripts
+
+    - name: Check the title
+      run: python3 -I .github/scripts/conventional_commit.py "$TITLE"
+      env:
+        TITLE: ${{ github.event.pull_request.title }}
+
+  commits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: .github/scripts
+
+    - name: Check the commit subjects
+      run: |
+        gh pr view "$PR_NUMBER" --json commits --jq '.commits[].messageHeadline' |
+          python3 -I .github/scripts/conventional_commit.py -
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}

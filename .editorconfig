@@ -1,0 +1,172 @@
+# Only values that differ from the .NET / editor defaults are listed here.
+# Conventions:
+#   https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/naming-guidelines
+#   https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names
+#   https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{csproj,props,targets,slnx,json,yml,yaml}]
+indent_size = 2
+
+[*.cs]
+max_line_length = 160
+
+#
+# Usings: sorted alphabetically (System.* is not placed first);
+# static usings and aliases follow the regular ones.
+#
+dotnet_sort_system_directives_first = false
+
+#
+# Blank lines: no consecutive empty lines; an empty line after a statement that spans several lines
+# (enforced by Rider / ReSharper only; Roslyn has no such rule)
+#
+dotnet_diagnostic.IDE2000.severity = warning
+dotnet_style_allow_multiple_blank_lines_experimental = false
+resharper_blank_lines_after_multiline_statements = 1
+resharper_keep_blank_lines_in_code = 1
+resharper_keep_blank_lines_in_declarations = 1
+
+#
+# Braces in if, else and loops: required when a condition or a body spans several lines (in an if-else chain, when
+# any part does); otherwise left out, e.g. an if without else whose condition and body each fit on one line.
+# Roslyn (IDE0011) only adds missing braces; Rider / ReSharper also removes the redundant ones.
+#
+csharp_prefer_braces = when_multiline
+dotnet_diagnostic.IDE0011.severity = warning
+resharper_braces_for_for = required_for_multiline
+resharper_braces_for_foreach = required_for_multiline
+resharper_braces_for_ifelse = required_for_multiline
+resharper_braces_for_while = required_for_multiline
+resharper_braces_redundant = true
+
+#
+# Code style
+#
+csharp_style_namespace_declarations = file_scoped
+csharp_style_prefer_primary_constructors = false
+csharp_style_var_when_type_is_apparent = true
+
+#
+# Expression bodies (=>): allowed, not enforced, for a method, operator or local function whose body is one expression;
+# a multi-line body is a block body ({ }). Neither style is suggested.
+# An expression-bodied method is never written on one line: the "=>" starts the next line. Any other "=>" that is followed by
+# a line break (a lambda, a property, a switch expression arm) starts the next line too, unless it opens a block
+# (Rider / ReSharper only; dotnet format has no such rule).
+#
+csharp_style_expression_bodied_local_functions = when_on_single_line:silent
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_operators = when_on_single_line:silent
+resharper_arrange_local_function_body_highlighting = none
+resharper_arrange_method_or_operator_body_highlighting = none
+resharper_place_expr_method_on_single_line = never
+resharper_use_heuristics_for_body_style = true
+resharper_wrap_before_arrow_with_expressions = true
+
+#
+# Wrapping: chained calls are wrapped one per line, before the ".", and binary expressions one operand per line,
+# before the operator (&&, ||, ??, +, …, the pattern operators and ?/:), unless the whole statement fits on one line.
+# Conditional expressions (?:) are always split one operand per line (Rider / ReSharper only; dotnet format has no such rule).
+# Stated explicitly, although some match the defaults, because Visual Studio and Rider use different settings.
+#
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+resharper_wrap_after_dot_in_method_calls = false
+resharper_wrap_before_binary_opsign = true
+resharper_wrap_before_binary_pattern_op = true
+resharper_wrap_before_ternary_opsigns = true
+resharper_wrap_chained_binary_expressions = chop_if_long
+resharper_wrap_chained_method_calls = chop_if_long
+resharper_wrap_ternary_expr_style = chop_always
+
+#
+# Naming: symbols
+#
+dotnet_naming_symbols.constants.applicable_kinds = field, local
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter, local
+
+dotnet_naming_symbols.pascal_case_symbols.applicable_kinds = namespace, class, struct, enum, delegate, property, method, event, local_function, field
+
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, internal, private_protected
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private, internal, private_protected
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+
+#
+# Naming: styles
+#
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+dotnet_naming_style.begins_with_i.required_prefix = I
+
+dotnet_naming_style.begins_with_t.capitalization = pascal_case
+dotnet_naming_style.begins_with_t.required_prefix = T
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.s_underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.s_underscore_camel_case.required_prefix = s_
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+#
+# Naming: rules (most specific first; the blocks are kept in this order on purpose)
+# IDE1006 is set explicitly: without it, command-line builds do not report naming violations.
+#
+dotnet_diagnostic.IDE1006.severity = warning
+
+dotnet_naming_rule.interfaces_should_begin_with_i.severity = warning
+dotnet_naming_rule.interfaces_should_begin_with_i.style = begins_with_i
+dotnet_naming_rule.interfaces_should_begin_with_i.symbols = interfaces
+
+dotnet_naming_rule.type_parameters_should_begin_with_t.severity = warning
+dotnet_naming_rule.type_parameters_should_begin_with_t.style = begins_with_t
+dotnet_naming_rule.type_parameters_should_begin_with_t.symbols = type_parameters
+
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
+
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = static_readonly_fields
+
+dotnet_naming_rule.private_static_fields_should_be_s_underscore_camel_case.severity = warning
+dotnet_naming_rule.private_static_fields_should_be_s_underscore_camel_case.style = s_underscore_camel_case
+dotnet_naming_rule.private_static_fields_should_be_s_underscore_camel_case.symbols = private_static_fields
+
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.severity = warning
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.symbols = private_fields
+
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.style = camel_case
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.symbols = parameters_and_locals
+
+dotnet_naming_rule.members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.members_should_be_pascal_case.symbols = pascal_case_symbols

@@ -1,0 +1,175 @@
+# Builds, tests and packs the library on pushes to main and on pull requests. Nothing is published from here:
+# releases go through the "Draft release" and "Publish" workflows.
+# The job id "build" is a required status check: keep the name, and never add a "paths" filter. On pull requests that
+# change no code (e.g. only docs/), it is skipped, which counts as passed.
+#
+# Jobs:
+#   - "changes": classifies the changed files (.github/scripts/changes.py); never a required check.
+#   - "build": restore (locked), format check, build (warnings are errors), test with coverage, pack.
+#
+# For more information, see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  ARTIFACTS_PATH: ${{ github.workspace }}/artifacts
+  RESULTS_PATH: ${{ github.workspace }}/test-results
+  REPORTGENERATOR_VERSION: 5.6.0
+  # The minimum line and branch coverage of the library, in percent. The target is 90 for both (#20); raise these
+  # together with the tests that add the coverage.
+  MINIMUM_LINE_COVERAGE: 55
+  MINIMUM_BRANCH_COVERAGE: 50
+
+permissions: {}
+
+jobs:
+  # Tells whether the pull request changes code or workflows (.github/scripts/changes.py). Pushes always run
+  # everything. A skipped job counts as passed for a required check; the jobs below run when this one fails.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: .github/scripts
+
+    - name: Classify the changed files
+      id: filter
+      run: |
+        if [ "$EVENT_NAME" = "pull_request" ]; then
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename' |
+            python3 -I .github/scripts/changes.py | tee -a "$GITHUB_OUTPUT"
+        else
+          python3 -I .github/scripts/changes.py --all | tee -a "$GITHUB_OUTPUT"
+        fi
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        GH_TOKEN: ${{ github.token }}
+
+  build:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Get bumped version
+      id: git_cliff
+      uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+      with:
+        version: v2.14.2
+        args: --bumped-version
+
+    # Until the first v* tag exists (the release backfill, #13), the CI packages are versioned 0.0.0-ci.N.
+    - name: Calculate version
+      id: calculate_version
+      run: |
+        if [ -n "$(git tag -l 'v*')" ]; then
+          NEXT=$(python3 -I .github/scripts/version.py next "$BUMPED")
+        else
+          NEXT=0.0.0
+          echo "::warning::No v* tag yet; the CI package is versioned ${NEXT}-ci.${RUN_NUMBER}."
+        fi
+        echo "package_version=${NEXT}-ci.${RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+        echo "informational_version=${NEXT}-ci.${RUN_NUMBER}+${COMMIT}" >> "$GITHUB_OUTPUT"
+        echo "Package version: ${NEXT}-ci.${RUN_NUMBER}"
+        echo "Informational version: ${NEXT}-ci.${RUN_NUMBER}+${COMMIT}"
+      env:
+        BUMPED: ${{ steps.git_cliff.outputs.content }}
+        RUN_NUMBER: ${{ github.run_number }}
+        COMMIT: ${{ github.sha }}
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore --locked-mode
+
+    - name: Check formatting
+      run: dotnet format --verify-no-changes --no-restore
+
+    # Directory.Build.props turns warnings into errors on GitHub Actions.
+    - name: Build
+      run: dotnet build --no-restore --configuration Release "-p:Version=${PACKAGE_VERSION}" "-p:InformationalVersion=${INFORMATIONAL_VERSION}"
+      env:
+        PACKAGE_VERSION: ${{ steps.calculate_version.outputs.package_version }}
+        INFORMATIONAL_VERSION: ${{ steps.calculate_version.outputs.informational_version }}
+
+    # Every test project writes a coverage file of its own (no coverage-output option, which would give them one name).
+    - name: Test
+      run: >-
+        dotnet test --no-build --configuration Release --results-directory "$RESULTS_PATH"
+        --coverage --coverage-output-format cobertura
+        --coverage-settings "${GITHUB_WORKSPACE}/tests/CodeCoverage.config"
+        --report-xunit-trx
+
+    - name: Coverage summary
+      if: ${{ !cancelled() }}
+      run: |
+        dotnet tool install --global dotnet-reportgenerator-globaltool --version "$REPORTGENERATOR_VERSION"
+        reportgenerator "-reports:${RESULTS_PATH}/*.cobertura.xml" "-targetdir:${RESULTS_PATH}/coverage-report" -reporttypes:MarkdownSummaryGithub
+        cat "${RESULTS_PATH}/coverage-report/SummaryGithub.md" >> "$GITHUB_STEP_SUMMARY"
+
+    # After the summary, so that it is in the job summary also when the coverage is too low. ReportGenerator exits with 1
+    # and names the coverage that is below the minimum.
+    - name: Coverage threshold
+      run: >-
+        reportgenerator "-reports:${RESULTS_PATH}/*.cobertura.xml" "-targetdir:${RESULTS_PATH}/coverage-report"
+        -reporttypes:TextSummary
+        "minimumCoverageThresholds:lineCoverage=${MINIMUM_LINE_COVERAGE}"
+        "minimumCoverageThresholds:branchCoverage=${MINIMUM_BRANCH_COVERAGE}"
+
+    - name: Upload test results and coverage
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: test-results
+        path: ${{ env.RESULTS_PATH }}
+        retention-days: 7
+        if-no-files-found: warn
+
+    - name: Generate NuGet package
+      run: >-
+        dotnet pack src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj --no-build --configuration Release
+        -o "$ARTIFACTS_PATH" "-p:Version=${PACKAGE_VERSION}" "-p:InformationalVersion=${INFORMATIONAL_VERSION}"
+      env:
+        PACKAGE_VERSION: ${{ steps.calculate_version.outputs.package_version }}
+        INFORMATIONAL_VERSION: ${{ steps.calculate_version.outputs.informational_version }}
+
+    - name: Upload NuGet package
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: nuget-${{ steps.calculate_version.outputs.package_version }}
+        path: |
+          ${{ env.ARTIFACTS_PATH }}/*.nupkg
+          ${{ env.ARTIFACTS_PATH }}/*.snupkg
+        retention-days: 7
+        if-no-files-found: error

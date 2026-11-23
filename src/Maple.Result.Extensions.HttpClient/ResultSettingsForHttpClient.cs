@@ -1,4 +1,4 @@
-﻿using Maple.Result.Extensions.HttpClient.Converters;
+using Maple.Result.Extensions.HttpClient.Converters;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;

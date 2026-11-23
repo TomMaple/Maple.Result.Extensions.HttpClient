@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 /*
  * This code is a part of a Maple.Result.Extensions.HttpClient library project.
  * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
@@ -55,7 +55,7 @@ internal static class ErrorUriMapper
 
     private static bool IsUriLocator(string source)
     {
-        return source.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) 
+        return source.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
             || source.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase);
     }
 

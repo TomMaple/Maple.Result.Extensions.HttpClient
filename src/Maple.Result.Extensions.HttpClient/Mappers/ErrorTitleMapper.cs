@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 /*
  * This code is a part of a Maple.Result.Extensions.HttpClient library project.
  * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
@@ -21,7 +21,6 @@ internal static partial class ErrorTitleMapper
     private static partial Regex PascalCaseRegex();
 
     #endregion
-
 
     internal static string Map(string? reasonPhrase, HttpStatusCode statusCode)
     {

@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 /*
  * This code is a part of a Maple.Result.Extensions.HttpClient library project.
  * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
@@ -23,8 +23,8 @@ internal static class DictionaryExtensions
 
         var existingKey = dictionary.Keys.FirstOrDefault(k => string.Equals(k, key, StringComparison.InvariantCultureIgnoreCase));
 
-        return existingKey is not null 
-            ? dictionary[existingKey] 
+        return existingKey is not null
+            ? dictionary[existingKey]
             : null;
     }
 }

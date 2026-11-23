@@ -1,0 +1,174 @@
+# Publishes the NuGet package when a GitHub Release is published.
+# The version comes from the release tag (vX.Y.Z or vX.Y.Z-pre). Releases are drafted by "Draft release".
+#
+# Two jobs:
+#   - "build" (read-only token) restores, builds, tests and packs;
+#   - "publish" runs in the "nuget" environment (deployments limited to v* tags), attests the build provenance of the
+#     package, pushes it to NuGet and attaches it to the release.
+# Re-running is idempotent (.github/scripts/release_state.py): "publish" skips what is already published, and fails
+# instead of attaching a rebuilt package that differs from the one on NuGet. After a partial failure, use
+# "Re-run failed jobs": it reuses the package of the first build.
+# Third-party packages never run next to the id-token or the write token.
+#
+# NuGet trusted publishing: the policy on nuget.org names this workflow file (publish.yml) and the "nuget"
+# environment. Rename either only together with the policy.
+
+name: Publish
+
+on:
+  release:
+    types: [ published ]
+
+concurrency:
+  group: publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+permissions: {}
+
+env:
+  TAG: ${{ github.event.release.tag_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      attempt: ${{ steps.attempt.outputs.attempt }}   # the run attempt that built the package
+    env:
+      ARTIFACTS_PATH: ${{ github.workspace }}/artifacts
+    steps:
+    - name: Validate tag
+      id: version
+      run: |
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+          echo "::error::Release tag '$TAG' is not a version tag (vX.Y.Z or vX.Y.Z-pre)."
+          exit 1
+        fi
+        echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ env.TAG }}
+        persist-credentials: false
+
+    - name: Calculate version
+      id: calculate_version
+      run: |
+        COMMIT=$(git rev-parse HEAD)
+        echo "package_version=${VERSION}" >> "$GITHUB_OUTPUT"
+        echo "informational_version=${VERSION}+${COMMIT}" >> "$GITHUB_OUTPUT"
+        echo "Package version: ${VERSION}"
+        echo "Informational version: ${VERSION}+${COMMIT}"
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore --locked-mode
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release "-p:Version=${PACKAGE_VERSION}" "-p:InformationalVersion=${INFORMATIONAL_VERSION}"
+      env:
+        PACKAGE_VERSION: ${{ steps.calculate_version.outputs.package_version }}
+        INFORMATIONAL_VERSION: ${{ steps.calculate_version.outputs.informational_version }}
+
+    - name: Test
+      run: dotnet test --no-build --configuration Release
+
+    - name: Generate NuGet package
+      run: >-
+        dotnet pack src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj --no-build --configuration Release -o "$ARTIFACTS_PATH"
+        "-p:Version=${PACKAGE_VERSION}"
+        "-p:InformationalVersion=${INFORMATIONAL_VERSION}"
+        "-p:PackageReleaseNotes=https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+      env:
+        PACKAGE_VERSION: ${{ steps.calculate_version.outputs.package_version }}
+        INFORMATIONAL_VERSION: ${{ steps.calculate_version.outputs.informational_version }}
+
+    - name: Record the build attempt
+      id: attempt
+      run: echo "attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+
+    - name: Upload NuGet package
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: nuget-package
+        path: |
+          ${{ env.ARTIFACTS_PATH }}/*.nupkg
+          ${{ env.ARTIFACTS_PATH }}/*.snupkg
+        retention-days: 7
+        if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: nuget
+    permissions:
+      contents: write           # upload release assets
+      id-token: write           # NuGet trusted publishing, attestation
+      attestations: write       # attestation
+      artifact-metadata: write  # attestation
+    env:
+      PACKAGES_PATH: ${{ github.workspace }}/packages
+    steps:
+    - name: Checkout scripts
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ env.TAG }}
+        persist-credentials: false
+        sparse-checkout: .github/scripts
+
+    - name: Download NuGet package
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: nuget-package
+        path: ${{ env.PACKAGES_PATH }}
+
+    - name: Check what is already published
+      id: state
+      run: python3 -I .github/scripts/release_state.py "$TAG" "${TAG#v}" "$PACKAGES_PATH" "$BUILD_ATTEMPT" "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      env:
+        BUILD_ATTEMPT: ${{ needs.build.outputs.attempt }}
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+
+    - name: Attest build provenance
+      if: steps.state.outputs.action == 'publish'
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-path: ${{ env.PACKAGES_PATH }}/*.nupkg
+
+    - name: NuGet login
+      if: steps.state.outputs.push == 'true'
+      uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+      id: nuget_login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
+    # Pushes the .snupkg next to the .nupkg as well. --skip-duplicate also covers a push that NuGet accepted but has
+    # not indexed yet when the state was checked.
+    - name: NuGet push
+      if: steps.state.outputs.push == 'true'
+      run: dotnet nuget push "${PACKAGES_PATH}/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY }}
+
+    # Only the packages missing from the release; an existing asset is never replaced.
+    - name: Attach packages to the release
+      if: steps.state.outputs.upload != ''
+      run: |
+        read -ra FILES <<< "$UPLOAD"
+        cd "$PACKAGES_PATH"
+        gh release upload "$TAG" "${FILES[@]}"
+      env:
+        UPLOAD: ${{ steps.state.outputs.upload }}
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}

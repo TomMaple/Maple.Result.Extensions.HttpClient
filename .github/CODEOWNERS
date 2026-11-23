@@ -1,0 +1,5 @@
+# Requests a review from the maintainer on every pull request. It does not require one: the main ruleset has
+# "Require review from Code Owners" off and 0 required approvals.
+# https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+* @TomMaple

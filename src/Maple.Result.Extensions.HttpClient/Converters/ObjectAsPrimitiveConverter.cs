@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 /*
  * This code is a part of a Maple.Result.Extensions.HttpClient library project.
  * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
@@ -53,62 +53,62 @@ internal class ObjectAsPrimitiveConverter : JsonConverter<object>
                 return reader.GetString();
 
             case JsonTokenType.Number:
-            {
-                if (reader.TryGetInt32(out var int32))
-                    return int32;
+                {
+                    if (reader.TryGetInt32(out var int32))
+                        return int32;
 
-                if (reader.TryGetInt64(out var int64))
-                    return int64;
+                    if (reader.TryGetInt64(out var int64))
+                        return int64;
 
-                if (reader.TryGetDecimal(out var dec))
-                    return dec;
+                    if (reader.TryGetDecimal(out var dec))
+                        return dec;
 
-                if (reader.TryGetDouble(out var dbl))
-                    return dbl;
+                    if (reader.TryGetDouble(out var dbl))
+                        return dbl;
 
-                using var doc = JsonDocument.ParseValue(ref reader);
-                return doc.RootElement.Clone();
-            }
+                    using var doc = JsonDocument.ParseValue(ref reader);
+                    return doc.RootElement.Clone();
+                }
 
             case JsonTokenType.StartArray:
-            {
-                var list = new List<object>();
-                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                 {
-                    var item = Read(ref reader, typeof(object), options);
-                    if (item is not null)
-                        list.Add(item);
-                }
-
-                return list.ToArray();
-            }
-
-            case JsonTokenType.StartObject:
-            {
-                var dict = new Dictionary<string, object?>();
-                while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
-                {
-                    while (reader.TokenType == JsonTokenType.Comment)
-                        reader.Read();
-
-                    if (reader.TokenType == JsonTokenType.Null)
-                        continue;
-
-                    if (reader.TokenType != JsonTokenType.PropertyName)
+                    var list = new List<object>();
+                    while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                     {
-                        using var doc = JsonDocument.ParseValue(ref reader);
-
-                        throw new JsonException($"Cannot parse object “{doc.RootElement.ToString()}”!");
+                        var item = Read(ref reader, typeof(object), options);
+                        if (item is not null)
+                            list.Add(item);
                     }
 
-                    var key = reader.GetString() ?? string.Empty;
-                    reader.Read();
-                    var value = Read(ref reader, typeof(object), options);
-                    dict[key] = value;
+                    return list.ToArray();
                 }
 
-                return dict;
-            }
+            case JsonTokenType.StartObject:
+                {
+                    var dict = new Dictionary<string, object?>();
+                    while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+                    {
+                        while (reader.TokenType == JsonTokenType.Comment)
+                            reader.Read();
+
+                        if (reader.TokenType == JsonTokenType.Null)
+                            continue;
+
+                        if (reader.TokenType != JsonTokenType.PropertyName)
+                        {
+                            using var doc = JsonDocument.ParseValue(ref reader);
+
+                            throw new JsonException($"Cannot parse object “{doc.RootElement.ToString()}”!");
+                        }
+
+                        var key = reader.GetString() ?? string.Empty;
+                        reader.Read();
+                        var value = Read(ref reader, typeof(object), options);
+                        dict[key] = value;
+                    }
+
+                    return dict;
+                }
 
             default:
                 throw new JsonException($"Unknown token {reader.TokenType}");

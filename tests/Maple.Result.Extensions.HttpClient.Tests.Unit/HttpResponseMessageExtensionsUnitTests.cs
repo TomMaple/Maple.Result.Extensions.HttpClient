@@ -1,6 +1,6 @@
-﻿using System.Net;
-using System.Net.Http.Headers;
 using Maple.Result.Extensions.HttpClient.Helpers;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace Maple.Result.Extensions.HttpClient.Tests.Unit;
 
@@ -693,7 +693,7 @@ public class HttpResponseMessageExtensionsUnitTests
     public async Task ToResultAsync_TErrorErrorBuilder_ValidErrorResponse_ReturnsFailedResult(HttpStatusCode statusCode, ErrorCategory expectedErrorCategory)
     {
         // Arrange
-        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson)};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(CustomErrorResponseJson) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<CustomErrorResponse>(CustomErrorResponseMapper.Map1);
@@ -1387,7 +1387,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const int Value = 4782;
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(Value.ToString())};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(Value.ToString()) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<int>();
@@ -1408,7 +1408,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const decimal Value = 879.263m;
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(Value.ToString())};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(Value.ToString()) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<decimal>();
@@ -1429,7 +1429,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const HttpStatusCode Value = HttpStatusCode.NotFound;
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(Value.ToString())};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(Value.ToString()) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<HttpStatusCode>();
@@ -1450,7 +1450,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const HttpStatusCode Value = HttpStatusCode.NotFound;
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent($"\"{Value}\"")};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent($"\"{Value}\"") };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<HttpStatusCode>();
@@ -1471,7 +1471,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const string Value = "The user has been created.";
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(Value)};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(Value) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<string>();
@@ -1492,7 +1492,7 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const string Value = "The user has been created.";
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent($"\"{Value}\"")};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent($"\"{Value}\"") };
         // Act
         var result = await httpResponseMessage.ToResultAsync<string>();
 
@@ -1514,7 +1514,7 @@ public class HttpResponseMessageExtensionsUnitTests
         const string TextValue = """{"EmailAddress":"test@example.com","EmailName":"Test User"}""";
         var expectedValue = new EmailDetail("test@example.com", "Test User");
 
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(TextValue)};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<EmailDetail>();
@@ -1536,9 +1536,9 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const string TextValue = """{"Id":965678,"DisplayName":"Test User","Name":"John Doe"}""";
-        var expectedValue = new UserDetail(965678,"Test User", "John Doe");
+        var expectedValue = new UserDetail(965678, "Test User", "John Doe");
 
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(TextValue)};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<UserDetail>();
@@ -1559,9 +1559,9 @@ public class HttpResponseMessageExtensionsUnitTests
     {
         // Arrange
         const string TextValue = """{"CountryCode":"+1","Number":"(123) 456-7890"}""";
-        var expectedValue = new PhoneNumber("+1","(123) 456-7890");
+        var expectedValue = new PhoneNumber("+1", "(123) 456-7890");
 
-        var httpResponseMessage = new HttpResponseMessage(statusCode){Content = new StringContent(TextValue)};
+        var httpResponseMessage = new HttpResponseMessage(statusCode) { Content = new StringContent(TextValue) };
 
         // Act
         var result = await httpResponseMessage.ToResultAsync<PhoneNumber>();
@@ -1634,7 +1634,6 @@ public class HttpResponseMessageExtensionsUnitTests
         result.Error.InstanceUri.ShouldBeNull();
         result.Error.ErrorDetails.ShouldBeEmpty();
     }
-
 
     [Theory]
     [InlineData(HttpStatusCode.BadRequest)]
@@ -2698,10 +2697,10 @@ public class HttpResponseMessageExtensionsUnitTests
 
     #region helper types
 
-    public struct EmailDetail(string EmailAddress, string? EmailName)
+    public struct EmailDetail(string emailAddress, string? emailName)
     {
-        public string EmailAddress { get; init; } = EmailAddress;
-        public string? EmailName { get; init; } = EmailName;
+        public string EmailAddress { get; init; } = emailAddress;
+        public string? EmailName { get; init; } = emailName;
     }
 
     private record UserDetail(int Id, string DisplayName, string Name);

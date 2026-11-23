@@ -1,0 +1,21 @@
+<Project>
+
+  <!-- Reports the code style rules of .editorconfig (IDE*) in command-line builds, not only in the IDE. -->
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- NuGet lock files (packages.lock.json, committed) pin every direct and transitive package by version and hash.
+       A local restore updates them; CI restores in locked mode and fails when they are out of date. -->
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <!-- CI fails on any warning and on a lock file that does not match the project files; local builds only report
+       warnings. -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestoreLockedMode>true</RestoreLockedMode>
+  </PropertyGroup>
+
+</Project>

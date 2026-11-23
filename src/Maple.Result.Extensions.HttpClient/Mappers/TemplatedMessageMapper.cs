@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 /*
  * This code is a part of a Maple.Result.Extensions.HttpClient library project.
  * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
@@ -45,7 +45,7 @@ internal static class TemplatedMessageMapper
     {
         if (jsonElement is not { ValueKind: JsonValueKind.Object })
             return null;
-        
+
         if (!JsonHelper.TryDeserialize<TemplatedMessageInternal>(jsonElement, out var templatedMessageInternal))
             return null;
 

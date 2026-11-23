@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 /*
  * This code is a part of a Maple.Result.Extensions.HttpClient library project.
  * https://github.com/TomMaple/Maple.Result.Extensions.HttpClient
@@ -125,7 +125,7 @@ internal static class ErrorDetailsMapper
 
     private static ErrorDetail? TryMap(ErrorDetailInternal? source)
     {
-        if (source == null) 
+        if (source == null)
             return null;
 
         if (string.IsNullOrWhiteSpace(source.Detail))

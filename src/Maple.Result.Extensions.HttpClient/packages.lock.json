@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Maple.Result": {
+        "type": "Direct",
+        "requested": "[1.39.1, )",
+        "resolved": "1.39.1",
+        "contentHash": "94RYQYZgv0poke33mnuznJ/d4JmqleHb2xiAtnUFGg/pRdElqodUnJ/j+vgoKgK3q2N3YnO2Eq3Gzv7lTac4Ig=="
+      }
+    },
+    "net8.0": {
+      "Maple.Result": {
+        "type": "Direct",
+        "requested": "[1.39.1, )",
+        "resolved": "1.39.1",
+        "contentHash": "94RYQYZgv0poke33mnuznJ/d4JmqleHb2xiAtnUFGg/pRdElqodUnJ/j+vgoKgK3q2N3YnO2Eq3Gzv7lTac4Ig=="
+      }
+    }
+  }
+}

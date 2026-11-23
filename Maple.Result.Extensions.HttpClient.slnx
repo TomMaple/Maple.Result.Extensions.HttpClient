@@ -1,12 +1,25 @@
 <Solution>
-  <Folder Name="/.github/" />
+  <Folder Name="/.github/scripts/">
+    <File Path=".github/scripts/changes.py" />
+    <File Path=".github/scripts/conventional_commit.py" />
+    <File Path=".github/scripts/filter_sarif.py" />
+    <File Path=".github/scripts/release_state.py" />
+    <File Path=".github/scripts/version.py" />
+  </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/build-and-publish.yml" />
   </Folder>
   <Folder Name="/.resources/">
     <File Path=".resources/icon.png" />
   </Folder>
-  <Folder Name="/docs/">
+  <Folder Name="/root/">
+    <File Path=".editorconfig" />
+    <File Path=".git-blame-ignore-revs" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="cliff.toml" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
@@ -14,6 +27,7 @@
     <Project Path="src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <File Path="tests/CodeCoverage.config" />
     <Project Path="tests/Maple.Result.Extensions.HttpClient.Tests.Unit/Maple.Result.Extensions.HttpClient.Tests.Unit.csproj" />
   </Folder>
 </Solution>

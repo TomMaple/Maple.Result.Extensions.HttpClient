@@ -8,9 +8,8 @@
 
     <PackageId>Maple.Result.Extensions.HttpClient</PackageId>
     <Title>The extension methods that map HttpClient’s HttpResponseMessage to Maple.Result.</Title>
-    <Description>A collection of extension methods to map HttpClient’s HttpResponseMessage to Maple.Result.</Description>
+    <Description>Extension methods that map HttpClient's HttpResponseMessage (including RFC 9457 problem details) to Maple.Result.</Description>
     <Authors>Tom Maple</Authors>
-    <PublisherName>Tom Maple</PublisherName>
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>Result;Error;RFC-9457;RFC-7807;HttpClient;HttpResponse;HttpResponseMessage;mapper</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -41,6 +40,10 @@
     <None Include="..\..\.resources\icon.png" Pack="true" PackagePath="" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Include="..\..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Maple.Result.Extensions.HttpClient.Tests.Unit" />
   </ItemGroup>
 
 </Project>

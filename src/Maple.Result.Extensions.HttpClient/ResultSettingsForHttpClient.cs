@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace Maple.Result.Extensions.HttpClient;
 
+/// <summary>
+/// The global settings of the <c>ToResultAsync()</c> extension methods of <see cref="System.Net.Http.HttpResponseMessage" />.
+/// </summary>
 public static class ResultSettingsForHttpClient
 {
     internal static JsonSerializerOptions JsonSerializerOptions { get; } = new(JsonSerializerDefaults.Web)
@@ -18,6 +21,11 @@ public static class ResultSettingsForHttpClient
         DefaultIgnoreCondition = JsonIgnoreCondition.Never
     };
 
+    /// <summary>
+    /// Changes the default <see cref="JsonSerializerOptions" /> used to read response bodies, for every call that does
+    /// not pass its own options.
+    /// </summary>
+    /// <param name="configure">An action that changes the default options.</param>
     public static void ConfigureJsonSerializerOptions(Action<JsonSerializerOptions> configure)
     {
         configure(JsonSerializerOptions);

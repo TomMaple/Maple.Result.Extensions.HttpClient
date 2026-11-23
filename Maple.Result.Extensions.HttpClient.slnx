@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/.github/">
+    <File Path=".github/CODEOWNERS" />
     <File Path=".github/dependabot.yml" />
   </Folder>
   <Folder Name="/.github/scripts/">

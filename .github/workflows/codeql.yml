@@ -1,0 +1,134 @@
+# CodeQL code scanning for the C# library source (tests are not built, so not analysed) and the GitHub Actions workflows.
+# Results in generated code (obj/, e.g. the [GeneratedRegex] source generator output) are removed before upload.
+# The "Analyze (…)" jobs are required status checks: keep the names, and never add a "paths" filter. On pull requests,
+# "Analyze (csharp)" is skipped when no code changes and "Analyze (actions)" when no workflow changes; a skipped job
+# counts as passed. They are two jobs, not a matrix: a skipped matrix job reports under an unexpanded name.
+# For more information, see: https://docs.github.com/en/code-security/code-scanning
+
+name: CodeQL
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: "30 23 * * 3"   # Wednesdays 23:30 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  # Tells whether the pull request changes code or workflows (.github/scripts/changes.py). Pushes and schedules always
+  # run everything. A skipped job counts as passed for a required check; the jobs below run when this one fails.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: .github/scripts
+
+    - name: Classify the changed files
+      id: filter
+      run: |
+        if [ "$EVENT_NAME" = "pull_request" ]; then
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename' |
+            python3 -I .github/scripts/changes.py | tee -a "$GITHUB_OUTPUT"
+        else
+          python3 -I .github/scripts/changes.py --all | tee -a "$GITHUB_OUTPUT"
+        fi
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        GH_TOKEN: ${{ github.token }}
+
+  analyze-csharp:
+    name: Analyze (csharp)
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    env:
+      SARIF_PATH: ${{ github.workspace }}/../results
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+      with:
+        languages: csharp
+        build-mode: manual
+        queries: security-and-quality
+
+    - name: Build
+      run: dotnet build src/Maple.Result.Extensions.HttpClient/Maple.Result.Extensions.HttpClient.csproj --configuration Release
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+      with:
+        category: "/language:csharp"
+        output: ${{ env.SARIF_PATH }}
+        upload: failure-only
+
+    - name: Remove results in generated code
+      run: python3 -I .github/scripts/filter_sarif.py "${SARIF_PATH}/csharp.sarif"
+
+    - name: Upload results
+      uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+      with:
+        sarif_file: ${{ env.SARIF_PATH }}/csharp.sarif
+        category: "/language:csharp"
+
+  analyze-actions:
+    name: Analyze (actions)
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.workflows != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+      with:
+        languages: actions
+        build-mode: none
+        queries: security-and-quality
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+      with:
+        category: "/language:actions"

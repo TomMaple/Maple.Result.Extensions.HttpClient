@@ -1,0 +1,46 @@
+# Enables auto-merge (squash) for Dependabot pull requests with NuGet minor and patch updates; GitHub merges them
+# once the required checks pass. NuGet majors and every GitHub Actions update wait for a manual review.
+# This includes the runtime dependency of the library, Maple.Result (decided in #11): its minor and patch updates are
+# merged like those of the test packages. Its majors wait for a manual review.
+# Needs "Allow auto-merge" and the main ruleset with required checks (without them the merge happens immediately).
+# A merge made with GITHUB_TOKEN does not trigger push workflows on main; they catch up on the next merge.
+
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - name: Fetch Dependabot metadata
+      id: metadata
+      uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      with:
+        github-token: ${{ github.token }}
+
+    - name: Show Dependabot metadata
+      run: |
+        echo "Ecosystem: ${ECOSYSTEM}; update type: ${UPDATE_TYPE}; dependencies: ${DEPENDENCIES}"
+      env:
+        ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+        UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+        DEPENDENCIES: ${{ steps.metadata.outputs.dependency-names }}
+
+    - name: Enable auto-merge for NuGet minor and patch updates
+      if: >-
+        steps.metadata.outputs.package-ecosystem == 'nuget' &&
+        steps.metadata.outputs.update-type != 'version-update:semver-major'
+      run: gh pr merge --auto --squash "$PR_URL"
+      env:
+        PR_URL: ${{ github.event.pull_request.html_url }}
+        GH_TOKEN: ${{ github.token }}

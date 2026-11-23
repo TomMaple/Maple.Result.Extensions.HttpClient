@@ -1,0 +1,41 @@
+# Dependabot configuration for automated dependency updates.
+# For more information, see: https://docs.github.com/en/code-security/dependabot
+#
+# Titles start with "chore(deps)" so they pass the PR title check and stay out of the release notes.
+# The 7-day cooldown skips releases younger than a week; it does not delay security updates.
+# NuGet minor and patch updates are grouped (and merged automatically, see dependabot-auto-merge.yml);
+# majors arrive as separate pull requests.
+
+version: 2
+updates:
+  # NuGet packages across src/ and tests/ project files, including the runtime dependency Maple.Result.
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 7
+    groups:
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions used by the workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"

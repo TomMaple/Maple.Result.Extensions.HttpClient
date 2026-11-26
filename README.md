@@ -2,6 +2,9 @@
 The extension methods that map [HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient) result to [Maple.Result](https://github.com/TomMaple/Result).
 
 
+# Requirements
+.NET 10 or later. Version 3.0 dropped .NET 8.
+
 # Project status: EARLY STAGE
 
 Check also my other libraries:

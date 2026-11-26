@@ -34,9 +34,10 @@ internal static class ContentErrors
     internal const string NullContentDetail = "The content of the response is the JSON value ‘null’.";
 
     /// <summary>
-    ///     The error of a success response whose content is missing or <c>null</c>.
+    ///     Creates the error <see cref="HttpClientErrorUris.InvalidSuccessContent" /> of a success response whose content is missing or
+    ///     <c>null</c>.
     /// </summary>
-    internal static ErrorBuilder InvalidSuccessContent(string detail)
+    internal static ErrorBuilder CreateInvalidSuccessContent(string detail)
     {
         var builder = ErrorBuilder.Failure(HttpClientErrorUris.InvalidSuccessContent, HttpClientErrorTitles.InvalidSuccessContent);
 
@@ -44,9 +45,10 @@ internal static class ContentErrors
     }
 
     /// <summary>
-    ///     The error of a success response whose content could not be deserialized.
+    ///     Creates the error <see cref="HttpClientErrorUris.InvalidSuccessContent" /> of a success response whose content could not be
+    ///     deserialized.
     /// </summary>
-    internal static ErrorBuilder InvalidSuccessContent(Exception exception)
+    internal static ErrorBuilder CreateInvalidSuccessContent(Exception exception)
     {
         var builder = ErrorBuilder.Failure(HttpClientErrorUris.InvalidSuccessContent, HttpClientErrorTitles.InvalidSuccessContent);
 
@@ -54,9 +56,9 @@ internal static class ContentErrors
     }
 
     /// <summary>
-    ///     The error of a response whose content could not be read.
+    ///     Creates the error <see cref="HttpClientErrorUris.UnreadableContent" /> of a response whose content could not be read.
     /// </summary>
-    internal static ErrorBuilder UnreadableContent(Exception exception)
+    internal static ErrorBuilder CreateUnreadableContent(Exception exception)
     {
         var builder = ErrorBuilder.Unavailable(HttpClientErrorUris.UnreadableContent, HttpClientErrorTitles.UnreadableContent);
         WithException(builder, exception);

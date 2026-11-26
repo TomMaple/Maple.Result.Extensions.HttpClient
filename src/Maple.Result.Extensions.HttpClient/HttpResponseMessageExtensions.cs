@@ -362,7 +362,7 @@ public static class HttpResponseMessageExtensions
         catch (Exception exception) when (IsReadFailure(exception))
         {
             var failureContext = CreateContext(response, options, string.Empty);
-            var failureBuilder = ContentErrors.UnreadableContent(exception);
+            var failureBuilder = ContentErrors.CreateUnreadableContent(exception);
 
             return Complete(failureBuilder, failureContext, options);
         }
@@ -391,7 +391,7 @@ public static class HttpResponseMessageExtensions
         {
             if (HttpContentReader.IsEmpty(content))
             {
-                errorBuilder = ContentErrors.InvalidSuccessContent(ContentErrors.NoContentDetail);
+                errorBuilder = ContentErrors.CreateInvalidSuccessContent(ContentErrors.NoContentDetail);
             }
             else if (ReadsRawText<T>(content))
             {
@@ -405,7 +405,7 @@ public static class HttpResponseMessageExtensions
                     return Result<T>.FromValue(textValue);
                 }
 
-                errorBuilder = ContentErrors.InvalidSuccessContent(ContentErrors.NoContentDetail);
+                errorBuilder = ContentErrors.CreateInvalidSuccessContent(ContentErrors.NoContentDetail);
             }
             else
             {
@@ -414,16 +414,16 @@ public static class HttpResponseMessageExtensions
                 if (value is not null)
                     return Result<T>.FromValue(value);
 
-                errorBuilder = ContentErrors.InvalidSuccessContent(ContentErrors.NullContentDetail);
+                errorBuilder = ContentErrors.CreateInvalidSuccessContent(ContentErrors.NullContentDetail);
             }
         }
         catch (JsonException exception)
         {
-            errorBuilder = ContentErrors.InvalidSuccessContent(exception);
+            errorBuilder = ContentErrors.CreateInvalidSuccessContent(exception);
         }
         catch (Exception exception) when (IsReadFailure(exception))
         {
-            errorBuilder = ContentErrors.UnreadableContent(exception);
+            errorBuilder = ContentErrors.CreateUnreadableContent(exception);
         }
 
         var context = CreateContext(response, options, string.Empty);

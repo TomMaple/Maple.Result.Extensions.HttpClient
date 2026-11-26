@@ -7,7 +7,10 @@
 
   <!-- NuGet lock files (packages.lock.json, committed) pin every direct and transitive package by version and hash.
        A local restore updates them; CI restores in locked mode and fails when they are out of date. -->
-  <PropertyGroup>
+  <!-- Not for the library: the SDK adds Microsoft.NET.ILLink.Tasks to it implicitly for IsAotCompatible, in the version of
+       the installed runtime, so its lock file would break on every SDK patch. Its only other package, Maple.Result, has no
+       dependencies and resolves to the exact version of the project file. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Maple.Result.Extensions.HttpClient'">
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 

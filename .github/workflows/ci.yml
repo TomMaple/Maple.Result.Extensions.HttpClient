@@ -25,10 +25,8 @@ env:
   ARTIFACTS_PATH: ${{ github.workspace }}/artifacts
   RESULTS_PATH: ${{ github.workspace }}/test-results
   REPORTGENERATOR_VERSION: 5.6.0
-  # The minimum line and branch coverage of the library, in percent. The target is 90 for both (#20); raise these
-  # together with the tests that add the coverage.
-  MINIMUM_LINE_COVERAGE: 55
-  MINIMUM_BRANCH_COVERAGE: 50
+  # The minimum line and branch coverage of the library, in percent.
+  MINIMUM_COVERAGE: 90
 
 permissions: {}
 
@@ -156,8 +154,8 @@ jobs:
       run: >-
         reportgenerator "-reports:${RESULTS_PATH}/*.cobertura.xml" "-targetdir:${RESULTS_PATH}/coverage-report"
         -reporttypes:TextSummary
-        "minimumCoverageThresholds:lineCoverage=${MINIMUM_LINE_COVERAGE}"
-        "minimumCoverageThresholds:branchCoverage=${MINIMUM_BRANCH_COVERAGE}"
+        "minimumCoverageThresholds:lineCoverage=${MINIMUM_COVERAGE}"
+        "minimumCoverageThresholds:branchCoverage=${MINIMUM_COVERAGE}"
 
     - name: Upload test results and coverage
       if: ${{ !cancelled() }}

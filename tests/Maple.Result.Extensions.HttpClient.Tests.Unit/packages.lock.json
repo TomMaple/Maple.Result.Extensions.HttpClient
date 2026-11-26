@@ -49,8 +49,8 @@
       },
       "Maple.Result": {
         "type": "Transitive",
-        "resolved": "1.39.1",
-        "contentHash": "94RYQYZgv0poke33mnuznJ/d4JmqleHb2xiAtnUFGg/pRdElqodUnJ/j+vgoKgK3q2N3YnO2Eq3Gzv7lTac4Ig=="
+        "resolved": "3.0.0-rc.3",
+        "contentHash": "l8DzO4HuCZ1RrLNyXTQ5Reas3srDGNR6bfSP8kfW412O3dANlqygu2mSe7j4u9ltq47nFOTPDdhet+f6+T5eeg=="
       },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
@@ -201,7 +201,7 @@
       "maple.result.extensions.httpclient": {
         "type": "Project",
         "dependencies": {
-          "Maple.Result": "[1.39.1, )"
+          "Maple.Result": "[3.0.0-rc.3, )"
         }
       }
     }

@@ -18,7 +18,7 @@ public class NamespaceUnitTests
     public void AssemblyName_Library_IsPackageId()
     {
         // Act
-        var result = typeof(AssemblyMarker).Assembly.GetName().Name;
+        var result = typeof(HttpErrorMetadataKeys).Assembly.GetName().Name;
 
         // Assert
         result.ShouldBe("Maple.Result.Extensions.HttpClient");
@@ -28,7 +28,7 @@ public class NamespaceUnitTests
     public void Namespace_LibraryType_IsMapleResultsExtensionsHttpClient()
     {
         // Act
-        var result = typeof(AssemblyMarker).Namespace;
+        var result = typeof(HttpErrorMetadataKeys).Namespace;
 
         // Assert
         result.ShouldBe("Maple.Results.Extensions.HttpClient");

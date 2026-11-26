@@ -5,6 +5,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>Maple.Result.Extensions.HttpClient</AssemblyName>
+    <RootNamespace>Maple.Results.Extensions.HttpClient</RootNamespace>
 
     <PackageId>Maple.Result.Extensions.HttpClient</PackageId>
     <Title>The extension methods that map HttpClient’s HttpResponseMessage to Maple.Result.</Title>
@@ -33,7 +34,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Maple.Result" Version="1.39.1" />
+    <PackageReference Include="Maple.Result" Version="3.0.0-rc.3" />
   </ItemGroup>
 
   <ItemGroup>

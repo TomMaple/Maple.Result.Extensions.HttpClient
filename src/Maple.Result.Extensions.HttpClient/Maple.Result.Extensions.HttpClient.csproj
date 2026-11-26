@@ -7,6 +7,9 @@
     <AssemblyName>Maple.Result.Extensions.HttpClient</AssemblyName>
     <RootNamespace>Maple.Results.Extensions.HttpClient</RootNamespace>
 
+    <!-- Marks the assembly as trimmable and turns on the trim, AOT and single-file analyzers. -->
+    <IsAotCompatible>true</IsAotCompatible>
+
     <PackageId>Maple.Result.Extensions.HttpClient</PackageId>
     <Title>The extension methods that map HttpClient’s HttpResponseMessage to Maple.Result.</Title>
     <Description>Extension methods that map HttpClient's HttpResponseMessage (including RFC 9457 problem details) to Maple.Result.</Description>

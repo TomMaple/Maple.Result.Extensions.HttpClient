@@ -56,7 +56,7 @@ public static class ErrorHttpExtensions
         if (!TryGetNumber(value, out var number))
             return false;
 
-        var isStatusCode = number is >= MinStatusCode and <= MaxStatusCode && number == Math.Floor(number);
+        var isStatusCode = number is >= MinStatusCode and <= MaxStatusCode && double.IsInteger(number);
         if (!isStatusCode)
             return false;
 

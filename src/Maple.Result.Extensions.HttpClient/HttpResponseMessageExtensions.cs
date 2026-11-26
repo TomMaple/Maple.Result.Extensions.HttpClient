@@ -398,7 +398,9 @@ public static class HttpResponseMessageExtensions
                 var text = await HttpContentReader.ReadTextAsync(content, cancellationToken).ConfigureAwait(false);
                 if (text.Length > 0)
                 {
-                    var textValue = (T)(object)text;
+                    // T is string here (see ReadsRawText); the compiler accepts the conversion only by way of object.
+                    object textObject = text;
+                    var textValue = (T)textObject;
 
                     return Result<T>.FromValue(textValue);
                 }

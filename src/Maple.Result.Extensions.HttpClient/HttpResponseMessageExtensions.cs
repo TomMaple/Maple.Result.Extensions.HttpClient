@@ -326,10 +326,10 @@ public static class HttpResponseMessageExtensions
     #region helper methods
 
     /// <summary>
-    ///     Applies what every error of a response gets: the entries about the response, which replace entries of the same keys, and
-    ///     then <see cref="HttpResultOptions.ConfigureError" />.
+    ///     Builds the error after it was mapped, with what every error of a response gets: the entries about the response, which replace
+    ///     entries of the same keys, and then <see cref="HttpResultOptions.ConfigureError" />.
     /// </summary>
-    private static Error Complete(ErrorBuilder builder, HttpErrorContext context, HttpResultOptions options)
+    private static Error BuildError(ErrorBuilder builder, HttpErrorContext context, HttpResultOptions options)
     {
         var statusCode = (int)context.StatusCode;
         builder.WithMetadata(HttpErrorMetadataKeys.HttpStatusCode, statusCode);
@@ -377,13 +377,13 @@ public static class HttpResponseMessageExtensions
             var failureContext = CreateContext(response, options, string.Empty);
             var failureBuilder = HttpClientErrors.UnreadableContent.Create(exception);
 
-            return Complete(failureBuilder, failureContext, options);
+            return BuildError(failureBuilder, failureContext, options);
         }
 
         var context = CreateContext(response, options, content);
         var builder = errorMapper.CreateBuilder(context, options);
 
-        return Complete(builder, context, options);
+        return BuildError(builder, context, options);
     }
 
     /// <summary>
@@ -440,7 +440,7 @@ public static class HttpResponseMessageExtensions
         }
 
         var context = CreateContext(response, options, string.Empty);
-        var error = Complete(errorBuilder, context, options);
+        var error = BuildError(errorBuilder, context, options);
 
         return Result<T>.FromError(error);
     }

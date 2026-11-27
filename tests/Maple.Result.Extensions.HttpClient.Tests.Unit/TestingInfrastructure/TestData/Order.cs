@@ -8,11 +8,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-namespace Maple.Results.Extensions.HttpClient;
+namespace Maple.Results.Extensions.HttpClient.Tests.Unit.TestingInfrastructure.TestData;
 
 /// <summary>
-///     Stands for the assembly while it has no other type: the tests read the assembly name and the namespace from it.
+/// The value of a successful response.
 /// </summary>
-internal static class AssemblyMarker
-{
-}
+internal sealed record Order(int Id, string? Customer);

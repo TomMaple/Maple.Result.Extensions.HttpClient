@@ -7,7 +7,7 @@ The extension methods that map [HttpClient](https://learn.microsoft.com/en-us/do
 
 # Project status: EARLY STAGE
 
-Version 3.0 is a rewrite for [Maple.Result](https://github.com/TomMaple/Maple.Result) 3.0, and it is in progress. Until the new API is merged, the `main` branch has no public API; the latest package on NuGet is [0.12.11](https://www.nuget.org/packages/Maple.Result.Extensions.HttpClient/0.12.11), from before the rewrite.
+Version 3.0 is a rewrite for [Maple.Result](https://github.com/TomMaple/Maple.Result) 3.0, and it is in progress. The `main` branch has the new `ToResultAsync` API, which is not released yet and does not read problem details yet (see *Status* below); the latest package on NuGet is [0.12.11](https://www.nuget.org/packages/Maple.Result.Extensions.HttpClient/0.12.11), from before the rewrite.
 
 Check also my other libraries:
 * [Maple.Result](https://github.com/TomMaple/Result),
@@ -21,7 +21,7 @@ Do you like it? Show your support by giving this project a star!
 The steps of the 3.0 rewrite:
 
 ✅ Maple.Result 3.0 and the removal of the old implementation ([#27](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient/issues/27))  
-🔲 `ToResultAsync` with options, an error context and custom mappers ([#28](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient/issues/28))  
+✅ `ToResultAsync` with options, an error context and custom mappers ([#28](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient/issues/28))  
 🔲 Reading RFC 9457 problem details ([#29](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient/issues/29))  
 🔲 Native AOT ([#17](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient/issues/17))  
 🔲 `IHttpClientBuilder.AddMapleResult` for clients of `IHttpClientFactory` ([#30](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient/issues/30))  

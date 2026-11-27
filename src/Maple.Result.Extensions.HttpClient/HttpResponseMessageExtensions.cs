@@ -38,6 +38,16 @@ namespace Maple.Results.Extensions.HttpClient;
 ///         <see cref="System.Net.Http.HttpClient" />) can still be read by the caller afterwards; one that was sent with
 ///         <see cref="HttpCompletionOption.ResponseHeadersRead" /> cannot.
 ///     </para>
+///     <para>
+///         The content is read without the captured <see cref="SynchronizationContext" /> (<c>ConfigureAwait(false)</c>), so the
+///         functions of the caller (a <c>mapError</c> function, <see cref="HttpResultOptions.MapStatus" /> and
+///         <see cref="HttpResultOptions.ConfigureError" />) may run on a thread-pool thread, also in an application with a user interface
+///         (e.g., WPF, Windows Forms, .NET MAUI or Blazor Server). They only build the error: they do not access the elements of a user
+///         interface or other state bound to the context. <see cref="ResultConfiguration.ContinueOnCapturedContext" /> does not change
+///         this, as it is the default of the delegates of the asynchronous extension methods of <i>Maple.Result</i> (e.g.,
+///         <c>ThenAsync</c> or <c>MatchAsync</c>). The code after the <c>await</c> of a <c>ToResultAsync</c> method continues on the
+///         context of the caller.
+///     </para>
 /// </remarks>
 public static class HttpResponseMessageExtensions
 {
@@ -138,7 +148,8 @@ public static class HttpResponseMessageExtensions
     /// <param name="response">The response to map; it is not disposed.</param>
     /// <param name="mapError">
     ///     The function that changes the error. It gets the body, the context of the response, and a builder that has the error of the
-    ///     status code: its category, the type <c>about:blank</c> and its phrase as the title.
+    ///     status code: its category, the type <c>about:blank</c> and its phrase as the title. It may run on a thread-pool thread, without
+    ///     the <see cref="SynchronizationContext" /> of the caller (see <see cref="HttpResponseMessageExtensions" />).
     /// </param>
     /// <param name="options">
     ///     The settings of the mapping; when <see langword="null" />, the instance stored on the request of the response under
@@ -229,7 +240,9 @@ public static class HttpResponseMessageExtensions
     /// <param name="response">The response to map; it is not disposed.</param>
     /// <param name="mapError">
     ///     The function that returns the error. It gets the body and the context of the response, which has the category and the title
-    ///     of the status code (<see cref="HttpErrorContext.DefaultCategory" />, <see cref="HttpErrorContext.DefaultTitle" />).
+    ///     of the status code (<see cref="HttpErrorContext.DefaultCategory" />, <see cref="HttpErrorContext.DefaultTitle" />). It may run
+    ///     on a thread-pool thread, without the <see cref="SynchronizationContext" /> of the caller (see
+    ///     <see cref="HttpResponseMessageExtensions" />).
     /// </param>
     /// <param name="options">
     ///     The settings of the mapping; when <see langword="null" />, the instance stored on the request of the response under

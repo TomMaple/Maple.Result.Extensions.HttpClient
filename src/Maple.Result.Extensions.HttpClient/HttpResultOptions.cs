@@ -61,7 +61,8 @@ public sealed class HttpResultOptions
     /// <remarks>
     ///     It runs last: after the body was mapped and after the entries of <see cref="HttpErrorMetadataKeys" /> were added, so what it
     ///     sets is kept. It runs for every error that a <c>ToResultAsync</c> method returns, also for the errors of
-    ///     <see cref="HttpClientErrors" />. An exception that it throws is not caught.
+    ///     <see cref="HttpClientErrors" />. An exception that it throws is not caught. It may run on a thread-pool thread, without the
+    ///     <see cref="System.Threading.SynchronizationContext" /> of the caller (see <see cref="HttpResponseMessageExtensions" />).
     /// </remarks>
     /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
     public Action<HttpErrorContext, ErrorBuilder>? ConfigureError
@@ -119,7 +120,9 @@ public sealed class HttpResultOptions
     /// <remarks>
     ///     When the function returns <see langword="null" />, <see cref="DefaultStatusMap" /> decides, so it has to name only the status
     ///     codes that it reads differently. It is not called for a success status code. The status code of the response decides the
-    ///     category; the <c>status</c> member of a problem details body is not read (it is advisory, <i>RFC 9457</i>, section 3.1.2).
+    ///     category; the <c>status</c> member of a problem details body is not read (it is advisory, <i>RFC 9457</i>, section 3.1.2). It
+    ///     may run on a thread-pool thread, without the <see cref="System.Threading.SynchronizationContext" /> of the caller (see
+    ///     <see cref="HttpResponseMessageExtensions" />).
     /// </remarks>
     /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
     public Func<HttpStatusCode, ErrorCategory?>? MapStatus

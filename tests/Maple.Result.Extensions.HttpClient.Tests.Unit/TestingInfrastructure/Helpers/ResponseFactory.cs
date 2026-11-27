@@ -65,4 +65,17 @@ internal static class ResponseFactory
     {
         return Create(statusCode, json, "application/json; charset=utf-8");
     }
+
+    /// <summary>
+    /// A response with a problem details body (application/problem+json, UTF-8), and the request that it answers when a request URI
+    /// is given.
+    /// </summary>
+    internal static HttpResponseMessage CreateProblemDetails(HttpStatusCode statusCode, string json, string? requestUri = null)
+    {
+        var response = Create(statusCode, json, "application/problem+json; charset=utf-8");
+        if (requestUri is not null)
+            response.RequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+        return response;
+    }
 }

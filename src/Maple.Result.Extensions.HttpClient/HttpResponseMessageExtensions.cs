@@ -25,7 +25,9 @@ namespace Maple.Results.Extensions.HttpClient;
 /// <remarks>
 ///     <para>
 ///         A response with a success status code is a successful result; any other status code is a failed result whose
-///         <see cref="Error" /> has the category of the status code (see <see cref="HttpResultOptions.GetDefaultCategory" />).
+///         <see cref="Error" /> has the category of the status code (see <see cref="HttpResultOptions.GetDefaultCategory" />). The
+///         methods without a <c>mapError</c> function read a problem details body (<i>RFC 9457</i>) into the error; the others give the
+///         body to the function.
 ///     </para>
 ///     <para>
 ///         The methods map a response that the caller already has: they do not send a request, and they do not dispose the response.
@@ -57,10 +59,11 @@ public static class HttpResponseMessageExtensions
     /// <param name="response">The response to map; it is not disposed.</param>
     extension(HttpResponseMessage response)
     {
-        #region the error of the status code
+        #region problem details
 
         /// <summary>
-        ///     Maps the response to a <see cref="Result" />: a success for a success status code, otherwise the error of the status code.
+        ///     Maps the response to a <see cref="Result" />: a success for a success status code, otherwise the error of the status code,
+        ///     read from a problem details body (<i>RFC 9457</i>) when the response has one.
         /// </summary>
         /// <param name="options">
         ///     The settings of the mapping; when <see langword="null" />, the instance stored on the request of the response under
@@ -76,8 +79,61 @@ public static class HttpResponseMessageExtensions
         ///     <para>
         ///         The error of a status code has the category that <see cref="HttpResultOptions.MapStatus" /> or
         ///         <see cref="HttpResultOptions.GetDefaultCategory" /> gives, the type <c>about:blank</c> (<see cref="ErrorUri.None" />) and the
-        ///         phrase of the status code as its title (e.g., “Not Found”; never the reason phrase or the body of the response). The body
-        ///         does not change this error; to read it, use an overload with a <c>mapError</c> function.
+        ///         phrase of the status code as its title (e.g., “Not Found”; never the reason phrase of the response).
+        ///     </para>
+        ///     <para>
+        ///         A problem details body changes this error, as <i>Reading problem details</i> of the format of <i>Maple.Result</i>
+        ///         describes (<see href="https://github.com/TomMaple/Maple.Result/blob/main/docs/problem-details.md#reading-problem-details" />).
+        ///         The body is read when its media type is <c>application/json</c> or has the <c>+json</c> suffix (e.g.,
+        ///         <c>application/problem+json</c>), or when the response has no <c>Content-Type</c> and the body is a <i>JSON</i> object; any
+        ///         other body (e.g., the HTML page of a proxy) is not read, and is never used as the title. Its members are read as follows:
+        ///     </para>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 <c>type</c> and <c>instance</c>: read with <see cref="ErrorUri.TryParse" />; a relative reference that does not
+        ///                 start with <c>/</c> (e.g., <c>out-of-credit</c>) is resolved against the URI of the request. A missing or invalid
+        ///                 <c>type</c> is <c>about:blank</c>, and a missing or invalid <c>instance</c> is none.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <c>title</c> and <c>detail</c>: as sent; a missing or blank title keeps the phrase of the status code.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <c>status</c>: not read; the status code of the response decides the category (the member is advisory,
+        ///                 <i>RFC 9457</i>, section 3.1.2).
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <c>errors</c>: the array of <i>RFC 9457</i> (an item without a detail is dropped, and an invalid pointer is
+        ///                 dropped from its item), or the object of <c>ValidationProblemDetails</c> of ASP.NET Core, whose keys become JSON
+        ///                 Pointers (<c>Items[0].Name</c> is <c>/Items/0/Name</c>; see <see cref="HttpResultOptions.ErrorKeyNamingPolicy" />).
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <c>detailTemplated</c>: its <c>templateId</c> and <c>params</c>; a template that <see cref="TemplatedMessage" />
+        ///                 rejects is dropped as a whole.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 Every other member: an entry of the metadata under its own name (e.g., <c>traceId</c>), with a plain value: a
+        ///                 <see cref="string" />, a <see cref="bool" />, <see langword="null" />, an <see cref="int" />, a <see cref="long" />,
+        ///                 a <see cref="decimal" /> or a <see cref="double" />, an <see cref="object" /> array, or a
+        ///                 <see cref="System.Collections.Generic.Dictionary{TKey,TValue}" /> of <see cref="string" /> and <see cref="object" />.
+        ///                 A key that the core rejects (e.g., <c>Title</c>) is dropped, and of two keys that differ only in case the last
+        ///                 one is kept.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        ///     <para>
+        ///         A body that is not a <i>JSON</i> object and a member of the wrong type do not throw: the error of the status code, or that
+        ///         part of it, stays. To read an error body in another format, use an overload with a <c>mapError</c> function.
         ///     </para>
         ///     <para>
         ///         Every error has the status code of the response in its metadata (<see cref="HttpErrorMetadataKeys.HttpStatusCode" />, read with
@@ -97,7 +153,7 @@ public static class HttpResponseMessageExtensions
         {
             ArgumentNullException.ThrowIfNull(response);
 
-            return ToResultCoreAsync(response, options, DefaultErrorMapper.Instance, cancellationToken);
+            return ToResultCoreAsync(response, options, ProblemDetailsErrorMapper.Instance, cancellationToken);
         }
 
         /// <summary>
@@ -136,7 +192,7 @@ public static class HttpResponseMessageExtensions
         {
             ArgumentNullException.ThrowIfNull(response);
 
-            return ToResultCoreAsync<T>(response, options, DefaultErrorMapper.Instance, cancellationToken);
+            return ToResultCoreAsync<T>(response, options, ProblemDetailsErrorMapper.Instance, cancellationToken);
         }
 
         #endregion

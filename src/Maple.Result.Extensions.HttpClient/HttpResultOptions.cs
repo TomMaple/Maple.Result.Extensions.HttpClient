@@ -113,9 +113,9 @@ public sealed class HttpResultOptions
     /// <summary>
     ///     Gets or sets a function that chooses the category of an error from the status code of the response.
     /// </summary>
-    /// <value>The function, or <see langword="null" /> (the default) to use <see cref="DefaultStatusMap" /> for every status code.</value>
+    /// <value>The function, or <see langword="null" /> (the default) to use <see cref="GetDefaultCategory" /> for every status code.</value>
     /// <remarks>
-    ///     When the function returns <see langword="null" />, <see cref="DefaultStatusMap" /> decides, so it has to name only the status
+    ///     When the function returns <see langword="null" />, <see cref="GetDefaultCategory" /> decides, so it has to name only the status
     ///     codes that it reads differently. It is not called for a success status code. The status code of the response decides the
     ///     category; the <c>status</c> member of a problem details body is not read (it is advisory, <i>RFC 9457</i>, section 3.1.2). It
     ///     may run on a thread-pool thread, without the <see cref="System.Threading.SynchronizationContext" /> of the caller (see
@@ -162,7 +162,7 @@ public sealed class HttpResultOptions
     ///         error is never read as <see cref="ErrorCategory.Failure" />, which is an expected error.
     ///     </para>
     /// </remarks>
-    public static ErrorCategory DefaultStatusMap(HttpStatusCode statusCode)
+    public static ErrorCategory GetDefaultCategory(HttpStatusCode statusCode)
     {
         var code = (int)statusCode;
 
@@ -206,14 +206,14 @@ public sealed class HttpResultOptions
 
     /// <summary>
     ///     Returns the category of the <paramref name="statusCode" />: the one that <see cref="MapStatus" /> chooses, or the one of
-    ///     <see cref="DefaultStatusMap" />.
+    ///     <see cref="GetDefaultCategory" />.
     /// </summary>
     /// <exception cref="InvalidOperationException">If <see cref="MapStatus" /> returns a value that is not a defined category.</exception>
     internal ErrorCategory GetCategory(HttpStatusCode statusCode)
     {
         var mapped = MapStatus?.Invoke(statusCode);
         if (mapped is null)
-            return DefaultStatusMap(statusCode);
+            return GetDefaultCategory(statusCode);
 
         var category = mapped.Value;
         if (!Enum.IsDefined(category))

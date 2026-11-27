@@ -53,7 +53,7 @@ public sealed class HttpErrorContext
     ///     Gets the category that the status code of the response maps to.
     /// </summary>
     /// <remarks>
-    ///     It is the result of <see cref="HttpResultOptions.MapStatus" />, or of <see cref="HttpResultOptions.DefaultStatusMap" /> when that
+    ///     It is the result of <see cref="HttpResultOptions.MapStatus" />, or of <see cref="HttpResultOptions.GetDefaultCategory" /> when that
     ///     function is not set or returns <see langword="null" />. A success status code is never passed to the function: for the errors
     ///     of a response with a success status code (see <see cref="HttpClientErrors" />), this is <see cref="ErrorCategory.Failure" />.
     /// </remarks>

@@ -107,7 +107,7 @@ public class HttpResultOptionsUnitTests
 
     #endregion
 
-    #region DefaultStatusMap
+    #region GetDefaultCategory
 
     // The column "status read (default)" of the problem details format of the core.
     [Theory]
@@ -130,10 +130,10 @@ public class HttpResultOptionsUnitTests
     [InlineData(501, ErrorCategory.NotImplemented)]
     [InlineData(502, ErrorCategory.Unavailable)]
     [InlineData(503, ErrorCategory.Unavailable)]
-    public void DefaultStatusMap_ListedStatusCode_ReturnsItsCategory(int statusCode, ErrorCategory expected)
+    public void GetDefaultCategory_ListedStatusCode_ReturnsItsCategory(int statusCode, ErrorCategory expected)
     {
         // Act
-        var result = HttpResultOptions.DefaultStatusMap((HttpStatusCode)statusCode);
+        var result = HttpResultOptions.GetDefaultCategory((HttpStatusCode)statusCode);
 
         // Assert
         result.ShouldBe(expected);
@@ -147,10 +147,10 @@ public class HttpResultOptionsUnitTests
     [InlineData(418)]
     [InlineData(451)]
     [InlineData(499)]
-    public void DefaultStatusMap_AnyOtherClientError_ReturnsFailure(int statusCode)
+    public void GetDefaultCategory_AnyOtherClientError_ReturnsFailure(int statusCode)
     {
         // Act
-        var result = HttpResultOptions.DefaultStatusMap((HttpStatusCode)statusCode);
+        var result = HttpResultOptions.GetDefaultCategory((HttpStatusCode)statusCode);
 
         // Assert
         result.ShouldBe(ErrorCategory.Failure);
@@ -162,10 +162,10 @@ public class HttpResultOptionsUnitTests
     [InlineData(507)]
     [InlineData(511)]
     [InlineData(599)]
-    public void DefaultStatusMap_AnyOtherServerError_ReturnsCritical(int statusCode)
+    public void GetDefaultCategory_AnyOtherServerError_ReturnsCritical(int statusCode)
     {
         // Act
-        var result = HttpResultOptions.DefaultStatusMap((HttpStatusCode)statusCode);
+        var result = HttpResultOptions.GetDefaultCategory((HttpStatusCode)statusCode);
 
         // Assert
         result.ShouldBe(ErrorCategory.Critical);
@@ -179,10 +179,10 @@ public class HttpResultOptionsUnitTests
     [InlineData(399)]
     [InlineData(600)]
     [InlineData(999)]
-    public void DefaultStatusMap_CodeOutsideTheErrorClasses_ReturnsFailure(int statusCode)
+    public void GetDefaultCategory_CodeOutsideTheErrorClasses_ReturnsFailure(int statusCode)
     {
         // Act
-        var result = HttpResultOptions.DefaultStatusMap((HttpStatusCode)statusCode);
+        var result = HttpResultOptions.GetDefaultCategory((HttpStatusCode)statusCode);
 
         // Assert
         result.ShouldBe(ErrorCategory.Failure);

@@ -25,7 +25,7 @@ namespace Maple.Results.Extensions.HttpClient;
 /// <remarks>
 ///     <para>
 ///         A response with a success status code is a successful result; any other status code is a failed result whose
-///         <see cref="Error" /> has the category of the status code (see <see cref="HttpResultOptions.DefaultStatusMap" />).
+///         <see cref="Error" /> has the category of the status code (see <see cref="HttpResultOptions.GetDefaultCategory" />).
 ///     </para>
 ///     <para>
 ///         The methods map a response that the caller already has: they do not send a request, and they do not dispose the response.
@@ -75,7 +75,7 @@ public static class HttpResponseMessageExtensions
         /// <remarks>
         ///     <para>
         ///         The error of a status code has the category that <see cref="HttpResultOptions.MapStatus" /> or
-        ///         <see cref="HttpResultOptions.DefaultStatusMap" /> gives, the type <c>about:blank</c> (<see cref="ErrorUri.None" />) and the
+        ///         <see cref="HttpResultOptions.GetDefaultCategory" /> gives, the type <c>about:blank</c> (<see cref="ErrorUri.None" />) and the
         ///         phrase of the status code as its title (e.g., “Not Found”; never the reason phrase or the body of the response). The body
         ///         does not change this error; to read it, use an overload with a <c>mapError</c> function.
         ///     </para>

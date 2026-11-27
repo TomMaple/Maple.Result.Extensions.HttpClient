@@ -1,0 +1,42 @@
+# Text files are normalized to LF in the repository and checked out with LF on every
+# platform, regardless of each contributor's core.autocrlf setting.
+* text=auto eol=lf
+
+#
+# Source code
+#
+*.cs            text diff=csharp
+*.csproj        text
+*.props         text
+*.slnx          text
+*.targets       text
+
+#
+# Documentation and configuration
+#
+*.config        text
+*.editorconfig  text
+*.json          text
+*.md            text diff=markdown
+*.py            text diff=python
+*.toml          text
+*.yaml          text
+*.yml           text
+.gitattributes  text
+.gitignore      text
+LICENSE         text
+
+#
+# Binary files (never normalize or diff as text)
+#
+*.dll           binary
+*.exe           binary
+*.gif           binary
+*.ico           binary
+*.jpeg          binary
+*.jpg           binary
+*.nupkg         binary
+*.pfx           binary
+*.png           binary
+*.snk           binary
+*.snupkg        binary

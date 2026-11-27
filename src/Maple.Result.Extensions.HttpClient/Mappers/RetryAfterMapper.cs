@@ -29,8 +29,11 @@ internal static class RetryAfterMapper
     internal static void Map(HttpStatusCode statusCode, RetryConditionHeaderValue? retryAfter,
         ErrorBuilder errorBuilder)
     {
-        if (statusCode is not HttpStatusCode.TooManyRequests || retryAfter is null)
+        if (statusCode is not (HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable)
+            || retryAfter is null)
+        {
             return;
+        }
 
         errorBuilder.WithDetailParam(DetailTemplateId, RawParamName, retryAfter.ToString());
 

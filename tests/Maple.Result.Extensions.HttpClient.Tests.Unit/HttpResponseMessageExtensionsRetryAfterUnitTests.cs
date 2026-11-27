@@ -26,11 +26,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
 
     #endregion
 
-    [Fact]
-    public async Task ToResultAsync_TooManyRequestsWithZeroRetryAfter_AddsZeroSeconds()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_RetryableStatusWithZeroRetryAfter_AddsZeroSeconds(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.Zero);
 
         // Act
@@ -48,11 +50,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[RawParamName].ShouldBe("0");
     }
 
-    [Fact]
-    public async Task ToResultAsync_TooManyRequestsWithInvalidRetryAfter_DoesNotAddTemplatedDetail()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_RetryableStatusWithInvalidRetryAfter_DoesNotAddTemplatedDetail(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.TryAddWithoutValidation("Retry-After", "soon");
 
         // Act
@@ -66,16 +70,17 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task ToResultAsync_CustomMapperSetsTemplateWithoutParams_KeepsTemplateAndAddsRetryAfter()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_CustomMapperSetsTemplateWithoutParams_KeepsTemplateAndAddsRetryAfter(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
 
         // Act
-        var result = await response.ToResultAsync<object>((_, builder) =>
-            builder.WithDetailTemplated("custom.template"));
+        var result = await response.ToResultAsync<object>((_, builder) => builder.WithDetailTemplated("custom.template"));
 
         // Assert
         result.ShouldNotBeNull();
@@ -88,17 +93,18 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(30);
     }
 
-    [Fact]
-    public async Task ToResultAsync_CustomMapperSetsSameParam_KeepsCustomMapperValue()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_CustomMapperSetsSameParam_KeepsCustomMapperValue(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
         var namedValues = new Dictionary<string, object> { [SecondsParamName] = 999 };
 
         // Act
-        var result = await response.ToResultAsync<object>((_, builder) =>
-            builder.WithDetailTemplated("custom.template", namedValues));
+        var result = await response.ToResultAsync<object>((_, builder) => builder.WithDetailTemplated("custom.template", namedValues));
 
         // Assert
         result.ShouldNotBeNull();
@@ -110,16 +116,17 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(999);
     }
 
-    [Fact]
-    public async Task ToResultAsync_CustomMapperOverridesCategory_KeepsCategoryAndAddsRetryAfter()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_CustomMapperOverridesCategory_KeepsCategoryAndAddsRetryAfter(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
 
         // Act
-        var result = await response.ToResultAsync<object>((_, builder) =>
-            builder.WithCategory(ErrorCategory.Failure));
+        var result = await response.ToResultAsync<object>((_, builder) => builder.WithCategory(ErrorCategory.Failure));
 
         // Assert
         result.ShouldNotBeNull();
@@ -133,11 +140,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(30);
     }
 
-    [Fact]
-    public async Task ToResultAsync_FullCustomMapperOverload_AddsRetryAfter()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_FullCustomMapperOverload_AddsRetryAfter(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
 
         // Act
@@ -153,11 +162,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(30);
     }
 
-    [Fact]
-    public async Task ToResultAsyncOfTTError_CustomMapper_AddsRetryAfter()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsyncOfTTError_CustomMapper_AddsRetryAfter(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
 
         // Act
@@ -174,11 +185,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(30);
     }
 
-    [Fact]
-    public async Task ToResultAsync_TooManyRequestsWithoutRetryAfter_ReturnsUnavailableErrorWithoutTemplatedDetail()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests, "Too Many Requests")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "Service Unavailable")]
+    public async Task ToResultAsync_RetryableStatusWithoutRetryAfter_ReturnsUnavailableErrorWithoutTemplatedDetail(HttpStatusCode statusCode, string expectedTitle)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
 
         // Act
         var result = await response.ToResultAsync();
@@ -188,7 +201,7 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.IsSuccess().ShouldBeFalse();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
-        result.Error.Title.ShouldBe("Too Many Requests");
+        result.Error.Title.ShouldBe(expectedTitle);
         result.Error.DetailTemplated.ShouldBeNull();
     }
 
@@ -216,13 +229,14 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params.Keys.ShouldNotContain(DateParamName);
     }
 
-    [Fact]
-    public async Task ToResultAsync_TooManyRequestsWithRetryAfterDate_AddsUtcDateToTemplatedDetail()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_RetryableStatusWithRetryAfterDate_AddsUtcDateToTemplatedDetail(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
-        response.Headers.RetryAfter =
-            new RetryConditionHeaderValue(new DateTimeOffset(2026, 11, 10, 12, 30, 0, TimeSpan.Zero));
+        var response = new HttpResponseMessage(statusCode);
+        response.Headers.RetryAfter = new RetryConditionHeaderValue(new DateTimeOffset(2026, 11, 10, 12, 30, 0, TimeSpan.Zero));
 
         // Act
         var result = await response.ToResultAsync();
@@ -241,14 +255,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params.Keys.ShouldNotContain(SecondsParamName);
     }
 
-    [Fact]
-    public async Task ToResultAsync_TooManyRequestsWithProblemDetailsTemplate_KeepsTemplateAndAddsRetryAfter()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsync_RetryableStatusWithProblemDetailsTemplate_KeepsTemplateAndAddsRetryAfter(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests)
-        {
-            Content = new StringContent(ProblemDetailsJson)
-        };
+        var response = new HttpResponseMessage(statusCode) { Content = new StringContent(ProblemDetailsJson) };
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
 
         // Act
@@ -268,11 +281,13 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
         result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(30);
     }
 
-    [Fact]
-    public async Task ToResultAsyncOfT_TooManyRequestsWithRetryAfterSeconds_AddsSecondsToTemplatedDetail()
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ToResultAsyncOfT_RetryableStatusWithRetryAfterSeconds_AddsSecondsToTemplatedDetail(HttpStatusCode statusCode)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        var response = new HttpResponseMessage(statusCode);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(5));
 
         // Act
@@ -290,10 +305,34 @@ public class HttpResponseMessageExtensionsRetryAfterUnitTests
     }
 
     [Fact]
-    public async Task ToResultAsync_ServiceUnavailableWithRetryAfter_DoesNotAddTemplatedDetail()
+    public async Task ToResultAsync_ServiceUnavailableWithRetryAfter_AddsSecondsToTemplatedDetail()
     {
         // Arrange
         var response = new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+        response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(120));
+
+        // Act
+        var result = await response.ToResultAsync();
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.IsSuccess().ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
+        result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
+        result.Error.DetailTemplated.ShouldNotBeNull();
+        result.Error.DetailTemplated.TemplateId.ShouldBe(RetryAfterTemplateId);
+        result.Error.DetailTemplated.Params.ShouldNotBeNull();
+        result.Error.DetailTemplated.Params.Keys.ShouldContain(SecondsParamName);
+        result.Error.DetailTemplated.Params[SecondsParamName].ShouldBe(120);
+        result.Error.DetailTemplated.Params.Keys.ShouldContain(RawParamName);
+        result.Error.DetailTemplated.Params[RawParamName].ShouldBe("120");
+    }
+
+    [Fact]
+    public async Task ToResultAsync_InternalServerErrorWithRetryAfter_DoesNotAddTemplatedDetail()
+    {
+        // Arrange
+        var response = new HttpResponseMessage(HttpStatusCode.InternalServerError);
         response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(120));
 
         // Act

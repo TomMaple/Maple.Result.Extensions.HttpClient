@@ -28,41 +28,47 @@ public static class ErrorHttpExtensions
     #endregion
 
     /// <summary>
-    ///     Gets the HTTP status code of the response that the error was mapped from, stored under
-    ///     <see cref="HttpErrorMetadataKeys.HttpStatusCode" />.
+    ///     The members that read what this package stores about the HTTP response of an <see cref="Error" />.
     /// </summary>
     /// <param name="error">The error.</param>
-    /// <param name="statusCode">The status code if the error has one; otherwise, the default value (<c>0</c>).</param>
-    /// <returns><see langword="true" /> if the error has a status code; otherwise, <see langword="false" />.</returns>
-    /// <remarks>
-    ///     <para>
-    ///         The key is found whatever its case. The value is written as an <see cref="int" />; because a number comes back from JSON in
-    ///         whatever type the deserializer chose, any integral type and a <see cref="decimal" />, <see cref="double" /> or
-    ///         <see cref="float" /> without a fraction are read as well. The number has to be from 0 to 999, the range of a
-    ///         <see cref="System.Net.Http.HttpResponseMessage" />; any other value (e.g., a text) counts as absent.
-    ///     </para>
-    ///     <para>An error that was not mapped from a response (e.g., one created by the application) has no status code.</para>
-    /// </remarks>
-    /// <exception cref="ArgumentNullException">If the <paramref name="error" /> is <see langword="null" />.</exception>
-    public static bool TryGetHttpStatusCode(this Error error, out HttpStatusCode statusCode)
+    extension(Error error)
     {
-        ArgumentNullException.ThrowIfNull(error);
+        /// <summary>
+        ///     Gets the HTTP status code of the response that the error was mapped from, stored under
+        ///     <see cref="HttpErrorMetadataKeys.HttpStatusCode" />.
+        /// </summary>
+        /// <param name="statusCode">The status code if the error has one; otherwise, the default value (<c>0</c>).</param>
+        /// <returns><see langword="true" /> if the error has a status code; otherwise, <see langword="false" />.</returns>
+        /// <remarks>
+        ///     <para>
+        ///         The key is found whatever its case. The value is written as an <see cref="int" />; because a number comes back from JSON in
+        ///         whatever type the deserializer chose, any integral type and a <see cref="decimal" />, <see cref="double" /> or
+        ///         <see cref="float" /> without a fraction are read as well. The number has to be from 0 to 999, the range of a
+        ///         <see cref="System.Net.Http.HttpResponseMessage" />; any other value (e.g., a text) counts as absent.
+        ///     </para>
+        ///     <para>An error that was not mapped from a response (e.g., one created by the application) has no status code.</para>
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">If the <paramref name="error" /> is <see langword="null" />.</exception>
+        public bool TryGetHttpStatusCode(out HttpStatusCode statusCode)
+        {
+            ArgumentNullException.ThrowIfNull(error);
 
-        statusCode = default;
+            statusCode = default;
 
-        if (!error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatusCode, out var value))
-            return false;
+            if (!error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatusCode, out var value))
+                return false;
 
-        if (!TryGetInteger(value, out var number))
-            return false;
+            if (!TryGetInteger(value, out var number))
+                return false;
 
-        var isStatusCode = number is >= MinStatusCode and <= MaxStatusCode;
-        if (!isStatusCode)
-            return false;
+            var isStatusCode = number is >= MinStatusCode and <= MaxStatusCode;
+            if (!isStatusCode)
+                return false;
 
-        statusCode = (HttpStatusCode)number;
+            statusCode = (HttpStatusCode)number;
 
-        return true;
+            return true;
+        }
     }
 
     #region helper methods

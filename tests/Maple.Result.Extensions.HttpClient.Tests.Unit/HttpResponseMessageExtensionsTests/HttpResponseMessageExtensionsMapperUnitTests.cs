@@ -62,8 +62,8 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         result.Error.Title.ShouldBe("Not Found");
         result.Error.Detail.ShouldBeNull();
         result.Error.Metadata.Count.ShouldBe(1);
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     [Fact]
@@ -87,8 +87,8 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         result.Error.Title.ShouldBe("The order is not here.");
         result.Error.Metadata.Keys.ShouldContain("code");
         result.Error.Metadata["code"].ShouldBe("E42");
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     [Fact]
@@ -240,9 +240,9 @@ public class HttpResponseMessageExtensionsMapperUnitTests
 
     // The entries about the response are stored after the function, so they replace what the function (or the body) stored under their keys.
     [Theory]
-    [InlineData("httpStatus")]
-    [InlineData("HttpStatus")]
-    [InlineData("HTTPSTATUS")]
+    [InlineData("httpStatusCode")]
+    [InlineData("HttpStatusCode")]
+    [InlineData("HTTPSTATUSCODE")]
     public async Task ToResultAsync_BuilderFunctionStoresTheKeyOfTheStatusCode_TheStatusCodeOfTheResponseReplacesIt(string key)
     {
         // Arrange
@@ -254,8 +254,8 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         // Assert
         result.Error.ShouldNotBeNull();
         result.Error.Metadata.Count.ShouldBe(1);
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     [Fact]
@@ -335,7 +335,7 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.NotFound);
         result.Error.Title.ShouldBe("The order is not here.");
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     [Fact]
@@ -377,8 +377,8 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         result.Error.Title.ShouldBe("The order is not here.");
         result.Error.Detail.ShouldBe("Order 42.");
         result.Error.Metadata.Count.ShouldBe(1);
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     // The category of the returned error is kept: the function decides everything but the entries about the response.
@@ -462,7 +462,7 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         var result = await response.ToResultAsync<ApiError>(
             (body, context) => Error
                 .NotFound(OrderNotFound, context.DefaultTitle)
-                .WithMetadata(("code", body?.Code), ("httpStatus", 200)),
+                .WithMetadata(("code", body?.Code), ("httpStatusCode", 200)),
             cancellationToken: CancellationToken);
 
         // Assert
@@ -470,8 +470,8 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         result.Error.Metadata.Count.ShouldBe(2);
         result.Error.Metadata.Keys.ShouldContain("code");
         result.Error.Metadata["code"].ShouldBe("E42");
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     [Fact]
@@ -563,7 +563,7 @@ public class HttpResponseMessageExtensionsMapperUnitTests
         result.Error.ShouldNotBeNull();
         result.Error.TypeUri.ShouldBe(OrderNotFound);
         result.Error.Title.ShouldBe("The order is not here.");
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
     }
 
     [Fact]

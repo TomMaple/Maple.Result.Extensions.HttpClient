@@ -94,8 +94,8 @@ public class HttpResponseMessageExtensionsErrorUnitTests
         // Assert
         result.Error.ShouldNotBeNull();
         result.Error.Metadata.Count.ShouldBe(1);
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(404);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
         result.Error.TryGetHttpStatus(out var statusCode).ShouldBeTrue();
         statusCode.ShouldBe(HttpStatusCode.NotFound);
     }
@@ -115,8 +115,8 @@ public class HttpResponseMessageExtensionsErrorUnitTests
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
         result.Error.Title.ShouldBe("Service Unavailable");
         result.Error.TypeUri.ShouldBe(ErrorUri.None);
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(503);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(503);
     }
 
     // The metadata of T is needed only for a value: an error response is mapped also when the options do not have it.
@@ -341,7 +341,7 @@ public class HttpResponseMessageExtensionsErrorUnitTests
         result.Error.Detail.ShouldBe("See the correlation identifier.");
         result.Error.Metadata.Keys.ShouldContain("correlationId");
         result.Error.Metadata["correlationId"].ShouldBe("c-123");
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
     }
 
     // It runs last: the status code is there already, and what the function sets is kept.
@@ -355,8 +355,8 @@ public class HttpResponseMessageExtensionsErrorUnitTests
             ConfigureError = (_, builder) =>
             {
                 var error = builder.Build();
-                error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatus, out statusWhenConfigured);
-                builder.WithMetadata(HttpErrorMetadataKeys.HttpStatus, 418);
+                error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatusCode, out statusWhenConfigured);
+                builder.WithMetadata(HttpErrorMetadataKeys.HttpStatusCode, 418);
             }
         };
         using var response = ResponseFactory.Create(HttpStatusCode.NotFound);
@@ -367,7 +367,7 @@ public class HttpResponseMessageExtensionsErrorUnitTests
         // Assert
         statusWhenConfigured.ShouldBe(404);
         result.Error.ShouldNotBeNull();
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(418);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(418);
     }
 
     [Fact]

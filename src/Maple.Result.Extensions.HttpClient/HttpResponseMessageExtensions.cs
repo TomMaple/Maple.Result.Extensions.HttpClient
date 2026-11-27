@@ -65,7 +65,7 @@ public static class HttpResponseMessageExtensions
     ///         does not change this error; to read it, use an overload with a <c>mapError</c> function.
     ///     </para>
     ///     <para>
-    ///         Every error has the status code of the response in its metadata (<see cref="HttpErrorMetadataKeys.HttpStatus" />, read with
+    ///         Every error has the status code of the response in its metadata (<see cref="HttpErrorMetadataKeys.HttpStatusCode" />, read with
     ///         <see cref="ErrorHttpExtensions.TryGetHttpStatus" />), and <see cref="HttpResultOptions.ConfigureError" /> runs last.
     ///     </para>
     ///     <para>
@@ -158,7 +158,7 @@ public static class HttpResponseMessageExtensions
     ///     </para>
     ///     <para>
     ///         After the function, the status code of the response is stored in the metadata
-    ///         (<see cref="HttpErrorMetadataKeys.HttpStatus" />; it replaces an entry that the function stored under that key), and
+    ///         (<see cref="HttpErrorMetadataKeys.HttpStatusCode" />; it replaces an entry that the function stored under that key), and
     ///         <see cref="HttpResultOptions.ConfigureError" /> runs.
     ///     </para>
     ///     <para>
@@ -249,7 +249,7 @@ public static class HttpResponseMessageExtensions
     ///     </para>
     ///     <para>
     ///         The result has a copy of the returned error with the status code of the response in its metadata
-    ///         (<see cref="HttpErrorMetadataKeys.HttpStatus" />; it replaces an entry of that key), changed by
+    ///         (<see cref="HttpErrorMetadataKeys.HttpStatusCode" />; it replaces an entry of that key), changed by
     ///         <see cref="HttpResultOptions.ConfigureError" />. The category is the one of the returned error.
     ///     </para>
     ///     <para>
@@ -319,7 +319,7 @@ public static class HttpResponseMessageExtensions
     private static Error Complete(ErrorBuilder builder, HttpErrorContext context, HttpResultOptions options)
     {
         var statusCode = (int)context.StatusCode;
-        builder.WithMetadata(HttpErrorMetadataKeys.HttpStatus, statusCode);
+        builder.WithMetadata(HttpErrorMetadataKeys.HttpStatusCode, statusCode);
 
         options.ConfigureError?.Invoke(context, builder);
 

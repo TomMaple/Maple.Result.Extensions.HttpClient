@@ -20,7 +20,7 @@ public class HttpErrorMetadataKeysUnitTests
         {
             { nameof(HttpErrorMetadataKeys.ExceptionType), HttpErrorMetadataKeys.ExceptionType, "exceptionType" },
             { nameof(HttpErrorMetadataKeys.HttpRequestError), HttpErrorMetadataKeys.HttpRequestError, "httpRequestError" },
-            { nameof(HttpErrorMetadataKeys.HttpStatus), HttpErrorMetadataKeys.HttpStatus, "httpStatus" },
+            { nameof(HttpErrorMetadataKeys.HttpStatusCode), HttpErrorMetadataKeys.HttpStatusCode, "httpStatusCode" },
         };
 
     [Theory]

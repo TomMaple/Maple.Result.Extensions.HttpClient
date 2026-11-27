@@ -29,7 +29,7 @@ public static class ErrorHttpExtensions
 
     /// <summary>
     ///     Gets the HTTP status code of the response that the error was mapped from, stored under
-    ///     <see cref="HttpErrorMetadataKeys.HttpStatus" />.
+    ///     <see cref="HttpErrorMetadataKeys.HttpStatusCode" />.
     /// </summary>
     /// <param name="error">The error.</param>
     /// <param name="statusCode">The status code if the error has one; otherwise, the default value (<c>0</c>).</param>
@@ -50,7 +50,7 @@ public static class ErrorHttpExtensions
 
         statusCode = default;
 
-        if (!error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatus, out var value))
+        if (!error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatusCode, out var value))
             return false;
 
         if (!TryGetInteger(value, out var number))

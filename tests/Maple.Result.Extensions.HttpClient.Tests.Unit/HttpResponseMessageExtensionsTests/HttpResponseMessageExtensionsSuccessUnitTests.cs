@@ -449,8 +449,8 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         // Assert
         result.Error.ShouldNotBeNull();
         result.Error.Metadata.Count.ShouldBe(1);
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(204);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(204);
     }
 
     // The body of a chunked response: that it is empty is known only after it is read, so the serializer reports it.
@@ -544,8 +544,8 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         result.Error.Metadata.Count.ShouldBe(2);
         result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.ExceptionType);
         result.Error.Metadata[HttpErrorMetadataKeys.ExceptionType].ShouldBe("System.Text.Json.JsonException");
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(201);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(201);
     }
 
     // The message of the JsonException names the path and the position, not the content.

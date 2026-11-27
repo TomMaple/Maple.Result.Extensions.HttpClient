@@ -68,8 +68,8 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.Error.Metadata[HttpErrorMetadataKeys.ExceptionType].ShouldBe("System.Net.Http.HttpIOException");
         result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpRequestError);
         result.Error.Metadata[HttpErrorMetadataKeys.HttpRequestError].ShouldBe("ResponseEnded");
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(200);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(200);
     }
 
     [Fact]
@@ -110,8 +110,8 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.Error.Metadata[HttpErrorMetadataKeys.ExceptionType].ShouldBe("System.Net.Http.HttpRequestException");
         result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpRequestError);
         result.Error.Metadata[HttpErrorMetadataKeys.HttpRequestError].ShouldBe("ResponseEnded");
-        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatus);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(502);
+        result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(502);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
         result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
-        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(500);
+        result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(500);
     }
 
     [Fact]

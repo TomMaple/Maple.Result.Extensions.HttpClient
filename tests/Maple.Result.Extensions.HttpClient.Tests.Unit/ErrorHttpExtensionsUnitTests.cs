@@ -48,7 +48,7 @@ public class ErrorHttpExtensionsUnitTests
     public void TryGetHttpStatus_IntEntry_ReturnsTheStatusCode()
     {
         // Arrange
-        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, 404);
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, 404);
 
         // Act
         var result = error.TryGetHttpStatus(out var statusCode);
@@ -60,9 +60,9 @@ public class ErrorHttpExtensionsUnitTests
 
     // A key taken from a response body may have another case; the lookups of the core ignore it.
     [Theory]
-    [InlineData("HttpStatus")]
-    [InlineData("HTTPSTATUS")]
-    [InlineData("httpstatus")]
+    [InlineData("HttpStatusCode")]
+    [InlineData("HTTPSTATUSCODE")]
+    [InlineData("httpstatuscode")]
     public void TryGetHttpStatus_KeyInAnotherCase_ReturnsTheStatusCode(string key)
     {
         // Arrange
@@ -95,7 +95,7 @@ public class ErrorHttpExtensionsUnitTests
     public void TryGetHttpStatus_WholeNumberOfAnotherType_ReturnsTheStatusCode(object value)
     {
         // Arrange
-        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, value);
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
         var result = error.TryGetHttpStatus(out var statusCode);
@@ -120,7 +120,7 @@ public class ErrorHttpExtensionsUnitTests
     public void TryGetHttpStatus_WholeDecimalWithTrailingZeros_ReturnsTheStatusCode(decimal value)
     {
         // Arrange
-        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, value);
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
         var result = error.TryGetHttpStatus(out var statusCode);
@@ -136,7 +136,7 @@ public class ErrorHttpExtensionsUnitTests
     public void TryGetHttpStatus_WholeNumberOfAByteType_ReturnsTheStatusCode(object value, HttpStatusCode expected)
     {
         // Arrange
-        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, value);
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
         var result = error.TryGetHttpStatus(out var statusCode);
@@ -153,7 +153,7 @@ public class ErrorHttpExtensionsUnitTests
     public void TryGetHttpStatus_BoundaryOfTheRange_ReturnsTheStatusCode(int value)
     {
         // Arrange
-        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, value);
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
         var result = error.TryGetHttpStatus(out var statusCode);
@@ -193,7 +193,7 @@ public class ErrorHttpExtensionsUnitTests
     public void TryGetHttpStatus_ValueThatIsNotAStatusCode_ReturnsFalse(object? value)
     {
         // Arrange
-        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, value);
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
         var result = error.TryGetHttpStatus(out var statusCode);

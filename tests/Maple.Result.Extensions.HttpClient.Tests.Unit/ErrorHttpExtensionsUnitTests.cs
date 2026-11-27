@@ -105,6 +105,31 @@ public class ErrorHttpExtensionsUnitTests
         statusCode.ShouldBe(HttpStatusCode.TooManyRequests);
     }
 
+    // A whole decimal with trailing zeros, which a conversion to a double turns into a fraction (403.99999999999994 and
+    // 404.00000000000006): the decimal is checked in its own type.
+    public static TheoryData<decimal> WholeDecimalsWithTrailingZeros
+        => new()
+        {
+            404.00000000000000000000m,
+            404.00000000000000000000000m,
+            404.0000000000000000000000000m,
+        };
+
+    [Theory]
+    [MemberData(nameof(WholeDecimalsWithTrailingZeros))]
+    public void TryGetHttpStatus_WholeDecimalWithTrailingZeros_ReturnsTheStatusCode(decimal value)
+    {
+        // Arrange
+        var error = CreateError(HttpErrorMetadataKeys.HttpStatus, value);
+
+        // Act
+        var result = error.TryGetHttpStatus(out var statusCode);
+
+        // Assert
+        result.ShouldBeTrue();
+        statusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     [Theory]
     [InlineData((byte)200, HttpStatusCode.OK)]
     [InlineData((sbyte)100, HttpStatusCode.Continue)]
@@ -146,13 +171,19 @@ public class ErrorHttpExtensionsUnitTests
             true,
             -1,
             1000,
+            (long)int.MaxValue + 404,
             long.MaxValue,
             ulong.MaxValue,
             404.5d,
             404.5m,
             404.5f,
+            // A fraction that a conversion to a double loses (it gives 404): the decimal is checked in its own type.
+            404.0000000000000001m,
             double.NaN,
             double.PositiveInfinity,
+            double.NegativeInfinity,
+            float.NaN,
+            float.PositiveInfinity,
             decimal.MaxValue,
             new[] { 404 },
         };

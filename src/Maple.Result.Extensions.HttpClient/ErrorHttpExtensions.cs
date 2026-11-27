@@ -53,31 +53,57 @@ public static class ErrorHttpExtensions
         if (!error.Metadata.TryGetValue(HttpErrorMetadataKeys.HttpStatus, out var value))
             return false;
 
-        if (!TryGetNumber(value, out var number))
+        if (!TryGetInteger(value, out var number))
             return false;
 
-        var isStatusCode = number is >= MinStatusCode and <= MaxStatusCode && double.IsInteger(number);
+        var isStatusCode = number is >= MinStatusCode and <= MaxStatusCode;
         if (!isStatusCode)
             return false;
 
-        statusCode = (HttpStatusCode)(int)number;
+        statusCode = (HttpStatusCode)number;
 
         return true;
     }
 
     #region helper methods
 
-    private static bool TryGetNumber(object? value, out double number)
+    /// <summary>
+    ///     Reads a number of any type that is a whole number in the range of an <see cref="int" />.
+    /// </summary>
+    /// <remarks>
+    ///     A <see cref="decimal" /> is checked in its own type: a conversion to a <see cref="double" /> is not exact, so it would turn a
+    ///     whole number with trailing zeros (e.g., <c>404.00000000000000000000</c>) into a fraction and drop a small fraction.
+    /// </remarks>
+    private static bool TryGetInteger(object? value, out int number)
     {
-        if (value is int or long or short or sbyte or byte or ushort or uint or ulong or decimal or double or float)
+        switch (value)
         {
-            number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
-            return true;
+            case int intValue:
+                number = intValue;
+                return true;
+
+            case short or sbyte or byte or ushort:
+                number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+                return true;
+
+            case decimal decimalValue when decimal.IsInteger(decimalValue) && decimalValue is >= int.MinValue and <= int.MaxValue:
+                number = (int)decimalValue;
+                return true;
+
+            // Every whole number in the range of an int converts to a double exactly.
+            case long or uint or ulong or double or float:
+                var doubleValue = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+                var isInteger = double.IsInteger(doubleValue) && doubleValue is >= int.MinValue and <= int.MaxValue;
+                number = isInteger
+                    ? (int)doubleValue
+                    : 0;
+
+                return isInteger;
+
+            default:
+                number = 0;
+                return false;
         }
-
-        number = 0;
-
-        return false;
     }
 
     #endregion

@@ -48,10 +48,7 @@ public sealed class HttpResultOptions
 
     #endregion
 
-    private Action<HttpErrorContext, ErrorBuilder>? _configureError;
     private volatile bool _isReadOnly;
-    private JsonSerializerOptions _jsonSerializerOptions = GetWebJsonSerializerOptions();
-    private Func<HttpStatusCode, ErrorCategory?>? _mapStatus;
 
     /// <summary>
     ///     Gets or sets a function that changes every error before it is returned, e.g., to add a correlation identifier from a header
@@ -67,11 +64,11 @@ public sealed class HttpResultOptions
     /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
     public Action<HttpErrorContext, ErrorBuilder>? ConfigureError
     {
-        get => _configureError;
+        get;
         set
         {
             EnsureMutable();
-            _configureError = value;
+            field = value;
         }
     }
 
@@ -103,15 +100,15 @@ public sealed class HttpResultOptions
     /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
     public JsonSerializerOptions JsonSerializerOptions
     {
-        get => _jsonSerializerOptions;
+        get;
         set
         {
             ArgumentNullException.ThrowIfNull(value);
             EnsureMutable();
 
-            _jsonSerializerOptions = value;
+            field = value;
         }
-    }
+    } = GetWebJsonSerializerOptions();
 
     /// <summary>
     ///     Gets or sets a function that chooses the category of an error from the status code of the response.
@@ -127,11 +124,11 @@ public sealed class HttpResultOptions
     /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
     public Func<HttpStatusCode, ErrorCategory?>? MapStatus
     {
-        get => _mapStatus;
+        get;
         set
         {
             EnsureMutable();
-            _mapStatus = value;
+            field = value;
         }
     }
 
@@ -201,7 +198,7 @@ public sealed class HttpResultOptions
         if (_isReadOnly)
             return;
 
-        MakeJsonSerializerOptionsReadOnly(_jsonSerializerOptions);
+        MakeJsonSerializerOptionsReadOnly(JsonSerializerOptions);
         _isReadOnly = true;
     }
 
@@ -214,7 +211,7 @@ public sealed class HttpResultOptions
     /// <exception cref="InvalidOperationException">If <see cref="MapStatus" /> returns a value that is not a defined category.</exception>
     internal ErrorCategory GetCategory(HttpStatusCode statusCode)
     {
-        var mapped = _mapStatus?.Invoke(statusCode);
+        var mapped = MapStatus?.Invoke(statusCode);
         if (mapped is null)
             return DefaultStatusMap(statusCode);
 

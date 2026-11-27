@@ -35,7 +35,7 @@ public static class HttpErrorMetadataKeys
 
     /// <summary>
     ///     <c>httpStatusCode</c>: the status code of the response (an <see cref="int" />, e.g., <c>404</c>), on every error mapped from a
-    ///     response. Read it with <see cref="ErrorHttpExtensions.TryGetHttpStatus" />.
+    ///     response. Read it with <see cref="ErrorHttpExtensions.TryGetHttpStatusCode" />.
     /// </summary>
     public const string HttpStatusCode = "httpStatusCode";
 }

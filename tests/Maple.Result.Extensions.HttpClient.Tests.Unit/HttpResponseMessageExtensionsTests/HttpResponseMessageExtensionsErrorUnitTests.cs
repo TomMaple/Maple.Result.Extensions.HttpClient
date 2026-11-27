@@ -96,7 +96,7 @@ public class HttpResponseMessageExtensionsErrorUnitTests
         result.Error.Metadata.Count.ShouldBe(1);
         result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.HttpStatusCode);
         result.Error.Metadata[HttpErrorMetadataKeys.HttpStatusCode].ShouldBe(404);
-        result.Error.TryGetHttpStatus(out var statusCode).ShouldBeTrue();
+        result.Error.TryGetHttpStatusCode(out var statusCode).ShouldBeTrue();
         statusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 

@@ -44,7 +44,7 @@ public static class ErrorHttpExtensions
     ///     <para>An error that was not mapped from a response (e.g., one created by the application) has no status code.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException">If the <paramref name="error" /> is <see langword="null" />.</exception>
-    public static bool TryGetHttpStatus(this Error error, out HttpStatusCode statusCode)
+    public static bool TryGetHttpStatusCode(this Error error, out HttpStatusCode statusCode)
     {
         ArgumentNullException.ThrowIfNull(error);
 

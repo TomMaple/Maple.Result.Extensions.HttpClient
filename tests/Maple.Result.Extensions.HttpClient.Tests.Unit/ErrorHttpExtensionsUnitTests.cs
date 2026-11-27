@@ -14,16 +14,16 @@ namespace Maple.Results.Extensions.HttpClient.Tests.Unit;
 
 public class ErrorHttpExtensionsUnitTests
 {
-    #region TryGetHttpStatus
+    #region TryGetHttpStatusCode
 
     [Fact]
-    public void TryGetHttpStatus_NullError_ThrowsArgumentNullException()
+    public void TryGetHttpStatusCode_NullError_ThrowsArgumentNullException()
     {
         // Arrange
         Error error = null!;
 
         // Act
-        var exception = Record.Exception(() => error.TryGetHttpStatus(out _));
+        var exception = Record.Exception(() => error.TryGetHttpStatusCode(out _));
 
         // Assert
         var argumentException = exception.ShouldBeOfType<ArgumentNullException>();
@@ -31,13 +31,13 @@ public class ErrorHttpExtensionsUnitTests
     }
 
     [Fact]
-    public void TryGetHttpStatus_NoEntry_ReturnsFalse()
+    public void TryGetHttpStatusCode_NoEntry_ReturnsFalse()
     {
         // Arrange
         var error = CreateError();
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeFalse();
@@ -45,13 +45,13 @@ public class ErrorHttpExtensionsUnitTests
     }
 
     [Fact]
-    public void TryGetHttpStatus_IntEntry_ReturnsTheStatusCode()
+    public void TryGetHttpStatusCode_IntEntry_ReturnsTheStatusCode()
     {
         // Arrange
         var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, 404);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeTrue();
@@ -63,13 +63,13 @@ public class ErrorHttpExtensionsUnitTests
     [InlineData("HttpStatusCode")]
     [InlineData("HTTPSTATUSCODE")]
     [InlineData("httpstatuscode")]
-    public void TryGetHttpStatus_KeyInAnotherCase_ReturnsTheStatusCode(string key)
+    public void TryGetHttpStatusCode_KeyInAnotherCase_ReturnsTheStatusCode(string key)
     {
         // Arrange
         var error = CreateError(key, 503);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeTrue();
@@ -92,13 +92,13 @@ public class ErrorHttpExtensionsUnitTests
 
     [Theory]
     [MemberData(nameof(WholeNumbers))]
-    public void TryGetHttpStatus_WholeNumberOfAnotherType_ReturnsTheStatusCode(object value)
+    public void TryGetHttpStatusCode_WholeNumberOfAnotherType_ReturnsTheStatusCode(object value)
     {
         // Arrange
         var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeTrue();
@@ -117,13 +117,13 @@ public class ErrorHttpExtensionsUnitTests
 
     [Theory]
     [MemberData(nameof(WholeDecimalsWithTrailingZeros))]
-    public void TryGetHttpStatus_WholeDecimalWithTrailingZeros_ReturnsTheStatusCode(decimal value)
+    public void TryGetHttpStatusCode_WholeDecimalWithTrailingZeros_ReturnsTheStatusCode(decimal value)
     {
         // Arrange
         var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeTrue();
@@ -133,13 +133,13 @@ public class ErrorHttpExtensionsUnitTests
     [Theory]
     [InlineData((byte)200, HttpStatusCode.OK)]
     [InlineData((sbyte)100, HttpStatusCode.Continue)]
-    public void TryGetHttpStatus_WholeNumberOfAByteType_ReturnsTheStatusCode(object value, HttpStatusCode expected)
+    public void TryGetHttpStatusCode_WholeNumberOfAByteType_ReturnsTheStatusCode(object value, HttpStatusCode expected)
     {
         // Arrange
         var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeTrue();
@@ -150,13 +150,13 @@ public class ErrorHttpExtensionsUnitTests
     [Theory]
     [InlineData(0)]
     [InlineData(999)]
-    public void TryGetHttpStatus_BoundaryOfTheRange_ReturnsTheStatusCode(int value)
+    public void TryGetHttpStatusCode_BoundaryOfTheRange_ReturnsTheStatusCode(int value)
     {
         // Arrange
         var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeTrue();
@@ -190,13 +190,13 @@ public class ErrorHttpExtensionsUnitTests
 
     [Theory]
     [MemberData(nameof(UnreadableValues))]
-    public void TryGetHttpStatus_ValueThatIsNotAStatusCode_ReturnsFalse(object? value)
+    public void TryGetHttpStatusCode_ValueThatIsNotAStatusCode_ReturnsFalse(object? value)
     {
         // Arrange
         var error = CreateError(HttpErrorMetadataKeys.HttpStatusCode, value);
 
         // Act
-        var result = error.TryGetHttpStatus(out var statusCode);
+        var result = error.TryGetHttpStatusCode(out var statusCode);
 
         // Assert
         result.ShouldBeFalse();

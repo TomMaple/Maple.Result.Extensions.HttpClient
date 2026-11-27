@@ -66,7 +66,7 @@ public static class HttpResponseMessageExtensions
     ///     </para>
     ///     <para>
     ///         Every error has the status code of the response in its metadata (<see cref="HttpErrorMetadataKeys.HttpStatusCode" />, read with
-    ///         <see cref="ErrorHttpExtensions.TryGetHttpStatus" />), and <see cref="HttpResultOptions.ConfigureError" /> runs last.
+    ///         <see cref="ErrorHttpExtensions.TryGetHttpStatusCode" />), and <see cref="HttpResultOptions.ConfigureError" /> runs last.
     ///     </para>
     ///     <para>
     ///         When the content of an error response cannot be read (e.g., the connection drops after the headers), the result is the

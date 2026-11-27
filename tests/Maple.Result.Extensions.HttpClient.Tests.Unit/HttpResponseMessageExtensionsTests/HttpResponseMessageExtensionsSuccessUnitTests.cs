@@ -372,7 +372,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         // Assert
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
     }
 
     [Fact]
@@ -387,7 +387,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         // Assert
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
         result.Error.Detail.ShouldBe("The response has no content.");
     }
 
@@ -405,7 +405,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         // Assert
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
         result.Error.Detail.ShouldBe("The response has no content.");
     }
 
@@ -428,8 +428,8 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Failure);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
-        result.Error.Title.ShouldBe(HttpClientErrorTitles.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
+        result.Error.Title.ShouldBe(HttpClientErrors.InvalidSuccessContent.Title);
         result.Error.Detail.ShouldBe("The response has no content.");
         result.Error.InstanceUri.ShouldBeNull();
         result.Error.DetailTemplated.ShouldBeNull();
@@ -468,7 +468,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Failure);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
         result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.ExceptionType);
     }
 
@@ -487,7 +487,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Failure);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
         result.Error.Detail.ShouldBe("The content of the response is the JSON value ‘null’.");
         result.Error.Metadata.Keys.ShouldNotContain(HttpErrorMetadataKeys.ExceptionType);
     }
@@ -505,7 +505,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         // Assert
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
     }
 
     [Theory]
@@ -526,8 +526,8 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Failure);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
-        result.Error.Title.ShouldBe(HttpClientErrorTitles.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
+        result.Error.Title.ShouldBe(HttpClientErrors.InvalidSuccessContent.Title);
     }
 
     [Fact]
@@ -579,7 +579,7 @@ public class HttpResponseMessageExtensionsSuccessUnitTests
         // Assert
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.InvalidSuccessContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.InvalidSuccessContent.Uri);
     }
 
     [Fact]

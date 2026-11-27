@@ -41,8 +41,8 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
-        result.Error.Title.ShouldBe(HttpClientErrorTitles.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
+        result.Error.Title.ShouldBe(HttpClientErrors.UnreadableContent.Title);
         result.Error.Detail.ShouldNotBeNull();
         result.Error.Detail.ShouldContain(ResponseEndedMessage);
         result.Error.InstanceUri.ShouldBeNull();
@@ -86,8 +86,8 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
-        result.Error.Title.ShouldBe(HttpClientErrorTitles.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
+        result.Error.Title.ShouldBe(HttpClientErrors.UnreadableContent.Title);
         result.Error.Detail.ShouldNotBeNull();
     }
 
@@ -128,7 +128,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
         result.Error.Metadata[HttpErrorMetadataKeys.HttpStatus].ShouldBe(500);
     }
 
@@ -146,7 +146,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
         result.IsError.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.Category.ShouldBe(ErrorCategory.Unavailable);
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
     }
 
     #endregion
@@ -176,7 +176,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
 
         // Assert
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
         result.Error.Metadata.Count.ShouldBe(2);
         result.Error.Metadata.Keys.ShouldContain(HttpErrorMetadataKeys.ExceptionType);
         result.Error.Metadata[HttpErrorMetadataKeys.ExceptionType].ShouldBe(expectedType);
@@ -230,7 +230,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
 
         // Assert
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
         result.Error.Detail.ShouldBeNull();
     }
 
@@ -314,7 +314,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
 
         // Assert
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
         called.ShouldBeFalse();
     }
 
@@ -338,7 +338,7 @@ public class HttpResponseMessageExtensionsContentFailureUnitTests
 
         // Assert
         result.Error.ShouldNotBeNull();
-        result.Error.TypeUri.ShouldBe(HttpClientErrorUris.UnreadableContent);
+        result.Error.TypeUri.ShouldBe(HttpClientErrors.UnreadableContent.Uri);
         called.ShouldBeFalse();
     }
 

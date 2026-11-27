@@ -29,7 +29,7 @@ namespace Maple.Results.Extensions.HttpClient;
 ///     </para>
 ///     <para>
 ///         The methods map a response that the caller already has: they do not send a request, and they do not dispose the response.
-///         Only a failure while the content is read becomes an error (<see cref="HttpClientErrorUris.UnreadableContent" />). A failure
+///         Only a failure while the content is read becomes an error (<see cref="HttpClientErrors.UnreadableContent" />). A failure
 ///         before there is a response (e.g., no connection) stays the exception of <see cref="System.Net.Http.HttpClient" />, and a
 ///         cancellation always stays an <see cref="OperationCanceledException" />.
 ///     </para>
@@ -70,7 +70,7 @@ public static class HttpResponseMessageExtensions
     ///     </para>
     ///     <para>
     ///         When the content of an error response cannot be read (e.g., the connection drops after the headers), the result is the
-    ///         error <see cref="HttpClientErrorUris.UnreadableContent" /> of the category <see cref="ErrorCategory.Unavailable" />.
+    ///         error <see cref="HttpClientErrors.UnreadableContent" /> of the category <see cref="ErrorCategory.Unavailable" />.
     ///     </para>
     /// </remarks>
     /// <exception cref="ArgumentNullException">If the <paramref name="response" /> is <see langword="null" />.</exception>
@@ -104,9 +104,9 @@ public static class HttpResponseMessageExtensions
     ///     <para>
     ///         A successful result always has a value. When the response has no content, or its content is the <i>JSON</i> value
     ///         <c>null</c> or cannot be read as a <typeparamref name="T" />, the result is the error
-    ///         <see cref="HttpClientErrorUris.InvalidSuccessContent" /> of the category <see cref="ErrorCategory.Failure" />, with the
+    ///         <see cref="HttpClientErrors.InvalidSuccessContent" /> of the category <see cref="ErrorCategory.Failure" />, with the
     ///         type of the exception in its metadata (<see cref="HttpErrorMetadataKeys.ExceptionType" />). When the content cannot be
-    ///         read at all, it is the error <see cref="HttpClientErrorUris.UnreadableContent" />.
+    ///         read at all, it is the error <see cref="HttpClientErrors.UnreadableContent" />.
     ///     </para>
     ///     <para>
     ///         Any other status code gives the error that
@@ -163,7 +163,7 @@ public static class HttpResponseMessageExtensions
     ///     </para>
     ///     <para>
     ///         An exception that the function throws is not caught. The function is not called for a success status code, nor when the
-    ///         content cannot be read: the result is the error <see cref="HttpClientErrorUris.UnreadableContent" /> then.
+    ///         content cannot be read: the result is the error <see cref="HttpClientErrors.UnreadableContent" /> then.
     ///     </para>
     /// </remarks>
     /// <exception cref="ArgumentNullException">
@@ -254,7 +254,7 @@ public static class HttpResponseMessageExtensions
     ///     </para>
     ///     <para>
     ///         An exception that the function throws is not caught. The function is not called for a success status code, nor when the
-    ///         content cannot be read: the result is the error <see cref="HttpClientErrorUris.UnreadableContent" /> then.
+    ///         content cannot be read: the result is the error <see cref="HttpClientErrors.UnreadableContent" /> then.
     ///     </para>
     /// </remarks>
     /// <exception cref="ArgumentNullException">
@@ -362,7 +362,7 @@ public static class HttpResponseMessageExtensions
         catch (Exception exception) when (IsReadFailure(exception))
         {
             var failureContext = CreateContext(response, options, string.Empty);
-            var failureBuilder = ContentErrors.CreateUnreadableContent(exception);
+            var failureBuilder = HttpClientErrors.UnreadableContent.Create(exception);
 
             return Complete(failureBuilder, failureContext, options);
         }
@@ -391,7 +391,7 @@ public static class HttpResponseMessageExtensions
         {
             if (HttpContentReader.IsEmpty(content))
             {
-                errorBuilder = ContentErrors.CreateInvalidSuccessContent(ContentErrors.NoContentDetail);
+                errorBuilder = HttpClientErrors.InvalidSuccessContent.Create(HttpClientErrors.InvalidSuccessContent.NoContentDetail);
             }
             else if (ReadsRawText<T>(content))
             {
@@ -405,7 +405,7 @@ public static class HttpResponseMessageExtensions
                     return Result<T>.FromValue(textValue);
                 }
 
-                errorBuilder = ContentErrors.CreateInvalidSuccessContent(ContentErrors.NoContentDetail);
+                errorBuilder = HttpClientErrors.InvalidSuccessContent.Create(HttpClientErrors.InvalidSuccessContent.NoContentDetail);
             }
             else
             {
@@ -414,16 +414,16 @@ public static class HttpResponseMessageExtensions
                 if (value is not null)
                     return Result<T>.FromValue(value);
 
-                errorBuilder = ContentErrors.CreateInvalidSuccessContent(ContentErrors.NullContentDetail);
+                errorBuilder = HttpClientErrors.InvalidSuccessContent.Create(HttpClientErrors.InvalidSuccessContent.NullContentDetail);
             }
         }
         catch (JsonException exception)
         {
-            errorBuilder = ContentErrors.CreateInvalidSuccessContent(exception);
+            errorBuilder = HttpClientErrors.InvalidSuccessContent.Create(exception);
         }
         catch (Exception exception) when (IsReadFailure(exception))
         {
-            errorBuilder = ContentErrors.CreateUnreadableContent(exception);
+            errorBuilder = HttpClientErrors.UnreadableContent.Create(exception);
         }
 
         var context = CreateContext(response, options, string.Empty);

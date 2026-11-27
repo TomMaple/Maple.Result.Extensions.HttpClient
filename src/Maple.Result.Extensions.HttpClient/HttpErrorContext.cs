@@ -43,8 +43,8 @@ public sealed class HttpErrorContext
     /// </summary>
     /// <remarks>
     ///     It is the raw text, also when it could not be read as the type of the error body. It is empty when the response has no body,
-    ///     when reading it failed (<see cref="HttpClientErrorUris.UnreadableContent" />), and for a response with a success status code,
-    ///     whose content is not read as text (<see cref="HttpClientErrorUris.InvalidSuccessContent" />). Use this text instead of reading
+    ///     when reading it failed (<see cref="HttpClientErrors.UnreadableContent" />), and for a response with a success status code,
+    ///     whose content is not read as text (<see cref="HttpClientErrors.InvalidSuccessContent" />). Use this text instead of reading
     ///     the content of the <see cref="Response" /> again.
     /// </remarks>
     public string Content { get; }
@@ -55,7 +55,7 @@ public sealed class HttpErrorContext
     /// <remarks>
     ///     It is the result of <see cref="HttpResultOptions.MapStatus" />, or of <see cref="HttpResultOptions.DefaultStatusMap" /> when that
     ///     function is not set or returns <see langword="null" />. A success status code is never passed to the function: for the errors
-    ///     of a response with a success status code (see <see cref="HttpClientErrorUris" />), this is <see cref="ErrorCategory.Failure" />.
+    ///     of a response with a success status code (see <see cref="HttpClientErrors" />), this is <see cref="ErrorCategory.Failure" />.
     /// </remarks>
     public ErrorCategory DefaultCategory { get; }
 

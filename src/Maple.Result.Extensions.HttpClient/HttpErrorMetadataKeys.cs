@@ -22,13 +22,13 @@ public static class HttpErrorMetadataKeys
     /// <summary>
     ///     <c>exceptionType</c>: the full name of the type of the exception (a <see cref="string" />, e.g.,
     ///     <c>System.Text.Json.JsonException</c>), on an error that this package creates for content that could not be read or
-    ///     deserialized (see <see cref="HttpClientErrorUris" />).
+    ///     deserialized (see <see cref="HttpClientErrors" />).
     /// </summary>
     public const string ExceptionType = "exceptionType";
 
     /// <summary>
     ///     <c>httpRequestError</c>: the name of the <see cref="System.Net.Http.HttpRequestError" /> value of the exception (a
-    ///     <see cref="string" />, e.g., <c>ResponseEnded</c>), on the error <see cref="HttpClientErrorUris.UnreadableContent" /> when the
+    ///     <see cref="string" />, e.g., <c>ResponseEnded</c>), on the error <see cref="HttpClientErrors.UnreadableContent" /> when the
     ///     exception has one.
     /// </summary>
     public const string HttpRequestError = "httpRequestError";

@@ -61,7 +61,7 @@ public sealed class HttpResultOptions
     /// <remarks>
     ///     It runs last: after the body was mapped and after the entries of <see cref="HttpErrorMetadataKeys" /> were added, so what it
     ///     sets is kept. It runs for every error that a <c>ToResultAsync</c> method returns, also for the errors of
-    ///     <see cref="HttpClientErrorUris" />. An exception that it throws is not caught.
+    ///     <see cref="HttpClientErrors" />. An exception that it throws is not caught.
     /// </remarks>
     /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
     public Action<HttpErrorContext, ErrorBuilder>? ConfigureError

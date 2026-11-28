@@ -11,6 +11,7 @@
 using Maple.Results.Http;
 using System;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text.Json;
 
 namespace Maple.Results.Extensions.HttpClient.Helpers;
@@ -35,7 +36,7 @@ internal static class ProblemDetailsReader
 {
     #region consts
 
-    private const string JsonMediaType = "application/json";
+    // The structured syntax suffix of JSON (RFC 6839, section 3.1), e.g., application/problem+json; MediaTypeNames has no constant of it.
     private const string JsonMediaTypeSuffix = "+json";
 
     // The characters of a URI besides letters, digits, % and # (RFC 3986, section 2): unreserved, sub-delims, ":", "@", "/" and "?".
@@ -55,7 +56,7 @@ internal static class ProblemDetailsReader
         if (mediaType is null)
             return text.AsSpan().TrimStart(" \t\r\n").StartsWith('{');
 
-        return mediaType.Equals(JsonMediaType, StringComparison.OrdinalIgnoreCase)
+        return mediaType.Equals(MediaTypeNames.Application.Json, StringComparison.OrdinalIgnoreCase)
                || mediaType.EndsWith(JsonMediaTypeSuffix, StringComparison.OrdinalIgnoreCase);
     }
 

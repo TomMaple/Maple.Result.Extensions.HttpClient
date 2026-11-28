@@ -78,6 +78,33 @@ public sealed class HttpResultOptions
     public static HttpResultOptions Default { get; } = CreateDefault();
 
     /// <summary>
+    ///     Gets or sets the naming policy that changes the names in the keys of the <c>errors</c> object of ASP.NET Core
+    ///     (<c>ValidationProblemDetails</c>) when they are turned into JSON Pointers, e.g., <see cref="JsonNamingPolicy.CamelCase" />.
+    /// </summary>
+    /// <value>The policy, or <see langword="null" /> (the default) to keep the case of the keys.</value>
+    /// <remarks>
+    ///     <para>
+    ///         ASP.NET Core writes the errors of a model as an object whose keys are the names of the .NET properties (e.g.,
+    ///         <c>Items[0].Name</c>), not the names of the JSON input. Each key becomes a pointer segment by segment
+    ///         (<c>/Items/0/Name</c>); the policy is applied to each name, never to an index, so camel case gives <c>/items/0/name</c>.
+    ///     </para>
+    ///     <para>
+    ///         The pointers of the <c>errors</c> array of <i>RFC 9457</i> are pointers already: they are never changed. An exception that
+    ///         the policy throws is not caught.
+    ///     </para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">If the value is set on a read-only instance.</exception>
+    public JsonNamingPolicy? ErrorKeyNamingPolicy
+    {
+        get;
+        set
+        {
+            EnsureMutable();
+            field = value;
+        }
+    }
+
+    /// <summary>
     ///     Gets or sets the options that read the content of a response as <i>JSON</i>: the value of a successful result and the body of
     ///     an error as a type of the caller.
     /// </summary>

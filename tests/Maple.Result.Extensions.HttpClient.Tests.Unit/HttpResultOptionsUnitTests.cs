@@ -27,6 +27,7 @@ public class HttpResultOptionsUnitTests
         // Assert
         sut.JsonSerializerOptions.ShouldBeSameAs(JsonSerializerOptions.Web);
         sut.MapStatus.ShouldBeNull();
+        sut.ErrorKeyNamingPolicy.ShouldBeNull();
         sut.ConfigureError.ShouldBeNull();
     }
 
@@ -87,6 +88,7 @@ public class HttpResultOptionsUnitTests
         // Assert
         sut.JsonSerializerOptions.ShouldBeSameAs(JsonSerializerOptions.Web);
         sut.MapStatus.ShouldBeNull();
+        sut.ErrorKeyNamingPolicy.ShouldBeNull();
         sut.ConfigureError.ShouldBeNull();
     }
 
@@ -103,6 +105,39 @@ public class HttpResultOptionsUnitTests
         // Assert
         exception.ShouldBeOfType<InvalidOperationException>();
         sut.MapStatus.ShouldBeNull();
+    }
+
+    #endregion
+
+    #region ErrorKeyNamingPolicy
+
+    [Fact]
+    public void ErrorKeyNamingPolicy_Set_IsReturned()
+    {
+        // Arrange
+        var sut = new HttpResultOptions();
+
+        // Act
+        sut.ErrorKeyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+        // Assert
+        sut.ErrorKeyNamingPolicy.ShouldBeSameAs(JsonNamingPolicy.CamelCase);
+    }
+
+    [Fact]
+    public void ErrorKeyNamingPolicy_SetOnReadOnlyOptions_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var sut = new HttpResultOptions();
+        sut.MakeReadOnly();
+
+        // Act
+        var exception = Record.Exception(() => sut.ErrorKeyNamingPolicy = JsonNamingPolicy.CamelCase);
+
+        // Assert
+        var invalidOperationException = exception.ShouldBeOfType<InvalidOperationException>();
+        invalidOperationException.Message.ShouldContain("read-only");
+        sut.ErrorKeyNamingPolicy.ShouldBeNull();
     }
 
     #endregion
@@ -344,6 +379,7 @@ public class HttpResultOptionsUnitTests
         {
             JsonSerializerOptions = jsonSerializerOptions,
             MapStatus = mapStatus,
+            ErrorKeyNamingPolicy = JsonNamingPolicy.CamelCase,
             ConfigureError = configureError
         };
 
@@ -353,6 +389,7 @@ public class HttpResultOptionsUnitTests
         // Assert
         sut.JsonSerializerOptions.ShouldBeSameAs(jsonSerializerOptions);
         sut.MapStatus.ShouldBeSameAs(mapStatus);
+        sut.ErrorKeyNamingPolicy.ShouldBeSameAs(JsonNamingPolicy.CamelCase);
         sut.ConfigureError.ShouldBeSameAs(configureError);
     }
 

@@ -119,24 +119,31 @@ internal static class ProblemDetailsWriter
             case null:
                 writer.WriteNullValue();
                 break;
+
             case string text:
                 writer.WriteStringValue(text);
                 break;
+
             case bool boolean:
                 writer.WriteBooleanValue(boolean);
                 break;
+
             case int number:
                 writer.WriteNumberValue(number);
                 break;
+
             case long number:
                 writer.WriteNumberValue(number);
                 break;
+
             case decimal number:
                 writer.WriteNumberValue(number);
                 break;
+
             case double number:
                 writer.WriteNumberValue(number);
                 break;
+
             default:
                 throw new NotSupportedException($"A value of the type ‘{value.GetType()}’ is not written by this helper.");
         }

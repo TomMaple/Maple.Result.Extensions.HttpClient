@@ -37,6 +37,7 @@ internal static class ErrorDetailsReader
             case JsonValueKind.Array:
                 ReadArray(element, builder);
                 break;
+
             case JsonValueKind.Object:
                 ReadObject(element, builder, errorKeyNamingPolicy);
                 break;
@@ -111,9 +112,11 @@ internal static class ErrorDetailsReader
                 case ProblemDetailsMembers.ErrorPointer:
                     pointerElement = property.Value;
                     break;
+
                 case ProblemDetailsMembers.ErrorDetail:
                     detailElement = property.Value;
                     break;
+
                 case ProblemDetailsMembers.ErrorDetailTemplated:
                     detailTemplatedElement = property.Value;
                     break;

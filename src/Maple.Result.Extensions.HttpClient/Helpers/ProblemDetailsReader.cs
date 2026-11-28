@@ -180,24 +180,31 @@ internal static class ProblemDetailsReader
                 case ProblemDetailsMembers.Type:
                     typeElement = member.Value;
                     break;
+
                 case ProblemDetailsMembers.Title:
                     titleElement = member.Value;
                     break;
+
                 case ProblemDetailsMembers.Status:
                     // The status code of the response decides the category; the status member is advisory (RFC 9457, section 3.1.2).
                     break;
+
                 case ProblemDetailsMembers.Detail:
                     detailElement = member.Value;
                     break;
+
                 case ProblemDetailsMembers.Instance:
                     instanceElement = member.Value;
                     break;
+
                 case ProblemDetailsMembers.Errors:
                     errorsElement = member.Value;
                     break;
+
                 case ProblemDetailsMembers.DetailTemplated:
                     detailTemplatedElement = member.Value;
                     break;
+
                 default:
                     AddMetadata(builder, member);
                     break;

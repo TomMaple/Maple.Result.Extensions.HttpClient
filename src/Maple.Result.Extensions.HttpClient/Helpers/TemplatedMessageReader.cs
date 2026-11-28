@@ -43,6 +43,7 @@ internal static class TemplatedMessageReader
                 case ProblemDetailsMembers.TemplateId:
                     templateIdElement = property.Value;
                     break;
+
                 case ProblemDetailsMembers.TemplateParams:
                     parametersElement = property.Value;
                     break;
